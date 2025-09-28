@@ -1,0 +1,1142 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Ellipse and Staircase Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  /* Light theme colors */
+  --primary: #1565c0;
+  --primary-hover: #1976d2;
+  --primary-light: #bbdefb;
+  --on-primary: #ffffff;
+  --surface: #ffffff;
+  --surface-variant: #f5f5f5;
+  --on-surface: #1d1b20;
+  --on-surface-variant: #49454f;
+  --outline: #79747e;
+  --outline-variant: #cac4d0;
+  --background: #fefbff;
+  --on-background: #1d1b20;
+  --selection-bg: #e3f2fd;
+  --grid-color: #e7e0ec;
+  --canvas-bg: #fefbff;
+  --canvas-surface: #ffffff;
+  --ellipse-outer: #d32f2f;
+  --ellipse-inner: #1565c0;
+  --block-color: #1d1b20;
+  --instruction-bg: #fff8e1;
+  --instruction-border: #f9cc33;
+  --instruction-text: #614a00;
+  --shadow: rgba(0, 0, 0, 0.12);
+  --shadow-strong: rgba(0, 0, 0, 0.16);
+}
+
+[data-theme="dark"] {
+  /* Dark theme colors */
+  --primary: #90caf9;
+  --primary-hover: #64b5f6;
+  --primary-light: #1e3a8a;
+  --on-primary: #003d82;
+  --surface: #1d1b20;
+  --surface-variant: #141218;
+  --on-surface: #e6e0e9;
+  --on-surface-variant: #cac4d0;
+  --outline: #938f99;
+  --outline-variant: #49454f;
+  --background: #141218;
+  --on-background: #e6e0e9;
+  --selection-bg: #2b2930;
+  --grid-color: #49454f;
+  --canvas-bg: #141218;
+  --canvas-surface: #1d1b20;
+  --ellipse-outer: #f2b8b5;
+  --ellipse-inner: #a8c7fa;
+  --block-color: #e6e0e9;
+  --instruction-bg: #3d2f00;
+  --instruction-border: #6c5d00;
+  --instruction-text: #ffd95a;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --shadow-strong: rgba(0, 0, 0, 0.4);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--background);
+  color: var(--on-background);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.top-app-bar {
+  background: var(--primary);
+  color: var(--on-primary);
+  padding: 16px 24px;
+  elevation: 2;
+  box-shadow: 0px 2px 4px var(--shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.top-app-bar h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--on-primary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.theme-toggle .material-icons {
+  font-size: 24px;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.controls-panel {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.surface {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0px 1px 3px var(--shadow);
+  border: 1px solid var(--outline-variant);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.surface h2 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--primary);
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.control-group:last-child {
+  margin-bottom: 0;
+}
+
+.btn {
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-filled {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.btn-filled:hover {
+  background: var(--primary-hover);
+  box-shadow: 0px 1px 3px var(--shadow-strong);
+}
+
+.btn-outlined {
+  background: transparent;
+  border: 1px solid var(--outline);
+  color: var(--primary);
+}
+
+.btn-mirror {
+  background: transparent;
+  border: 1px solid var(--outline);
+  color: var(--on-surface-variant);
+  min-width: 40px;
+  transition: all 0.2s ease;
+}
+
+.btn-mirror.mirrored {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+  box-shadow: 0px 1px 3px var(--shadow);
+}
+
+.btn-mirror:hover {
+  background: var(--selection-bg);
+}
+
+.btn-mirror.mirrored:hover {
+  background: var(--primary-hover);
+}
+
+.input-field {
+  width: 80px;
+  height: 40px;
+  border: 1px solid var(--outline);
+  border-radius: 4px;
+  padding: 0 12px;
+  font-family: inherit;
+  font-size: 14px;
+  text-align: center;
+  background: var(--surface);
+  color: var(--on-surface);
+  transition: border-color 0.2s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--primary);
+  border-width: 2px;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--on-surface-variant);
+  font-weight: 500;
+  min-width: 60px;
+}
+
+.canvas-container {
+  flex: 1;
+  background: var(--canvas-surface);
+  border-radius: 12px;
+  box-shadow: 0px 1px 3px var(--shadow);
+  border: 1px solid var(--outline-variant);
+  overflow: hidden;
+  position: relative;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+#myCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.spoke-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.instructions {
+  background: var(--instruction-bg);
+  border: 1px solid var(--instruction-border);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  color: var(--instruction-text);
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+.instruction-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.instruction-row:last-child {
+  margin-bottom: 0;
+}
+
+.material-icons {
+  font-size: 16px;
+}
+
+.divider {
+  height: 1px;
+  background: var(--outline-variant);
+  margin: 16px 0;
+}
+
+.select {
+  position: relative;
+  width: 140px;
+}
+
+.select select {
+  width: 100%;
+  height: 40px;
+  border: 1px solid var(--outline);
+  border-radius: 4px;
+  padding: 0 32px 0 12px;
+  font-family: inherit;
+  font-size: 14px;
+  background: var(--surface);
+  color: var(--on-surface);
+  cursor: pointer;
+  appearance: none;
+  transition: border-color 0.2s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+.select::after {
+  content: 'expand_more';
+  font-family: 'Material Icons';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--on-surface-variant);
+}
+
+.select select:focus {
+  outline: none;
+  border-color: var(--primary);
+  border-width: 2px;
+}
+</style>
+
+<script>
+var ellipseWidth = 40
+var ellipseHeight = 40
+var innerEllipseWidth = 20
+var innerEllipseHeight = 20
+var canWidth = 100
+var canHeight = 100
+var selection = [-1, -1, -1, -1]
+var makingSelection = false
+var panning = false;
+var fitMode = 0;
+var scale = [0, 0, 1, 1]
+var pan_data = [0, 0, 0, 0]
+var currentSpokeIndex = 0;
+var totalSpokes = 32; // Default spoke count
+var maxSpokes = 64;
+
+// FIX: Initialize mirror state variables
+var outerMirrored = true;  // Default to mirrored
+var innerMirrored = true;  // Default to mirrored
+
+function paintGrid(ctx) {
+    ctx.beginPath();
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid-color').trim();
+    ctx.lineWidth = 1;
+    for (let i=0; i<=ellipseWidth; i++) {
+        let x = (i * canWidth) / ellipseWidth;
+        if (x >= canWidth) x = canWidth-1;
+        ctx.moveTo(x+0.5 + scale[0], scale[1]);
+        ctx.lineTo(x+0.5 + scale[0], canHeight + scale[1]);
+    }
+    for (let i=0; i<=ellipseHeight; i++) {
+        let y = (i * canHeight) / ellipseHeight;
+        if (y >= canHeight) y = canHeight-1;
+        ctx.moveTo(scale[0],y+0.5 + scale[1]);
+        ctx.lineTo(canWidth + scale[0], y+0.5 + scale[1]);
+    }
+    ctx.stroke();
+}
+
+function selectedBlock(ctx, x, y) {
+    let x1 = (x * canWidth) / ellipseWidth
+    let y1 = (y * canHeight) / ellipseHeight
+    let x2 = ((x+1) * canWidth) / ellipseWidth
+    let y2 = ((y+1) * canHeight) / ellipseHeight
+    let w = x2 - x1 + 0.75
+    let h = y2 - y1 + 0.75
+    ctx.fillRect(x1 + scale[0], y1 + scale[1], w, h)
+}
+
+function fullBlock(ctx, x, y) {
+    let x1 = (x * canWidth) / ellipseWidth
+    let y1 = (y * canHeight) / ellipseHeight
+    let x2 = ((x+1) * canWidth) / ellipseWidth
+    let y2 = ((y+1) * canHeight) / ellipseHeight
+    
+    let w = x2 - x1 + 0.75
+    let h = y2 - y1 + 0.75
+    
+    ctx.fillRect(x1 + scale[0], y1 + scale[1], w, h)
+}
+
+function make2dArray(len){
+    var a = [];
+    for(let i = 0; i < len; i++) {
+        a.push([]);
+    }
+    return a;
+}
+
+function inside(x, y, cx, cy, rx, ry) {
+    if (rx <= 0 || ry <= 0) return false;
+    y = (y - cy) / ry;
+    x = (x - cx) / rx;
+    return (x*x + y*y < 1);
+}
+
+function through(x, y, cx, cy, rx, ry) {
+    let a =  inside(x-0.5, y-0.5, cx, cy, rx, ry);
+    a += inside(x+0.5, y-0.5, cx, cy, rx, ry);
+    a += inside(x-0.5, y+0.5, cx, cy, rx, ry);
+    a += inside(x+0.5, y+0.5, cx, cy, rx, ry);
+    
+    return (a != 0) && (a != 4);
+}
+
+function between(x, a, b) {
+    if (x >= a && x <= b) return true;
+    if (x >= b && x <= a) return true;
+    return false;
+}
+
+function plotLine(x0, y0, x1, y1, grid) {
+    let dx = x1 - x0;
+    let dy = y1 - y0;
+
+    let steps = Math.max(Math.abs(dx), Math.abs(dy));
+    if (steps === 0) {
+        let gridX = Math.round(x0);
+        let gridY = Math.round(y0);
+        if (grid[gridY]) grid[gridY][gridX] = true;
+        return;
+    }
+
+    let xIncrement = dx / steps;
+    let yIncrement = dy / steps;
+
+    let x = x0;
+    let y = y0;
+
+    for (let i = 0; i <= steps; i++) {
+        let gridX = Math.round(x);
+        let gridY = Math.round(y);
+        if (grid[gridY] && gridX >= 0 && gridX < grid[gridY].length && gridY >= 0) {
+            grid[gridY][gridX] = true;
+        }
+        x += xIncrement;
+        y += yIncrement;
+    }
+}
+
+function circle2(ctx) {
+    let ew = ellipseWidth;
+    let eh = ellipseHeight;
+    let inner_ew = innerEllipseWidth;
+    let inner_eh = innerEllipseHeight;
+
+    const arr_final = make2dArray(eh);
+    
+    for (let j = 0; j < eh; j++) {
+        for (let i = 0; i < ew; i++) {
+            arr_final[j][i] = false;
+        }
+    }
+
+    const cx = ew / 2.0 - 0.5;
+    const cy = eh / 2.0 - 0.5;    
+    const rx = ew / 2.0;
+    const ry = eh / 2.0;
+    const inner_rx = inner_ew / 2.0;
+    const inner_ry = inner_eh / 2.0;
+    
+    for (let j = 0; j < eh; j++) {
+        for (let i = 0; i < ew; i++) {
+            if (through(i, j, cx, cy, rx, ry)) {
+                arr_final[j][i] = true;
+            }
+            if (through(i, j, cx, cy, inner_rx, inner_ry)) {
+                arr_final[j][i] = true;
+            }
+        }
+    }
+    
+    if (currentSpokeIndex >= totalSpokes) { currentSpokeIndex = 0; }
+    if (currentSpokeIndex < 0) { currentSpokeIndex = totalSpokes - 1; }
+
+    const arr_spokes = make2dArray(eh);
+    const arr_hole = make2dArray(eh);
+    
+    for (let j = 0; j < eh; j++) {
+        for (let i = 0; i < ew; i++) {
+            arr_spokes[j][i] = false;
+            arr_hole[j][i] = false;
+        }
+    }
+
+    const angle = (currentSpokeIndex / totalSpokes) * 2 * Math.PI;
+    const endX = cx + rx * Math.cos(angle);
+    const endY = cy + ry * Math.sin(angle);
+
+    plotLine(cx, cy, endX, endY, arr_spokes);
+
+    for (let j = 0; j < eh; j++) {
+        for (let i = 0; i < ew; i++) {
+            if (inside(i, j, cx, cy, inner_rx, inner_ry)) {
+                arr_hole[j][i] = true;
+            }
+        }
+    }
+
+    for (let j = 0; j < eh; j++) {
+        for (let i = 0; i < ew; i++) {
+            if (arr_spokes[j] && arr_spokes[j][i] && !(arr_hole[j] && arr_hole[j][i])) {
+                arr_final[j][i] = true;
+            }
+        }
+    }
+
+    // Get theme colors from CSS variables
+    const rootStyles = getComputedStyle(document.documentElement);
+    const canvasBg = rootStyles.getPropertyValue('--canvas-bg').trim();
+    const selectionBg = rootStyles.getPropertyValue('--selection-bg').trim();
+    const blockColor = rootStyles.getPropertyValue('--block-color').trim();
+    const ellipseOuter = rootStyles.getPropertyValue('--ellipse-outer').trim();
+    const ellipseInner = rootStyles.getPropertyValue('--ellipse-inner').trim();
+
+    ctx.fillStyle = canvasBg;
+    ctx.fillRect(scale[0], scale[1], canWidth, canHeight);
+    ctx.fillStyle = selectionBg;
+
+    for (let j = 0; j < ellipseHeight; j++) {
+        for (let i = 0; i < ellipseWidth; i++) {
+            let inSelection = between(i, selection[0], selection[2]) && between(j, selection[1], selection[3]);
+            if (inSelection) {
+                selectedBlock(ctx, i, j);
+            }
+        }
+    }
+    
+    ctx.fillStyle = blockColor;
+    for (let j = 0; j < eh; j++) {
+        for (let i = 0; i < ew; i++) {
+            if (arr_final[j] && arr_final[j][i]) {
+                fullBlock(ctx, i, j);
+            }
+        }
+    }
+    
+    ctx.beginPath();
+    ctx.strokeStyle = ellipseOuter;
+    ctx.lineWidth = 2;
+    ctx.ellipse((cx + 0.5) * canWidth / ew + scale[0], (cy + 0.5) * canHeight / eh + scale[1], rx * canWidth / ew, ry * canHeight / eh, 0, 0, 2 * Math.PI);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.strokeStyle = ellipseInner;
+    ctx.lineWidth = 2;
+    ctx.ellipse((cx + 0.5) * canWidth / ew + scale[0], (cy + 0.5) * canHeight / eh + scale[1], inner_rx * canWidth / ew, inner_ry * canHeight / eh, 0, 0, 2 * Math.PI);
+    ctx.stroke();
+
+    paintGrid(ctx);
+}
+
+function canResize() {
+    let d = document.getElementById("canvas-container")
+    let elHeight = d.clientHeight;
+    let elWidth = d.clientWidth;
+    
+    let width = elWidth
+    let height = elHeight
+    
+    let h1 = height
+    let w1 = height * ellipseWidth / ellipseHeight
+    
+    let w2 = width
+    let h2 = width * ellipseHeight / ellipseWidth
+    
+    if (fitMode == 0) {
+        if (w1 > w2) {
+            width = w2
+            height = h2
+        } else {
+            width = w1
+            height = h1
+        }
+    } else if (fitMode == 1) {
+            width = w2
+            height = h2
+    } else {
+            width = w1
+            height = h1
+    }
+    
+    width *= scale[2];
+    height *= scale[3];
+
+    let can = document.getElementById("myCanvas");
+    
+    canWidth = width
+    canHeight = height
+    
+    can.width = elWidth
+    can.height = elHeight
+        
+    var c = document.getElementById("myCanvas");
+    var ctx = c.getContext("2d");
+
+    circle2(ctx)
+}
+
+// Control functions
+function incX() {
+    ellipseWidth++;
+    document.getElementById("ellw").value = ellipseWidth;
+    if (outerMirrored) {
+        ellipseHeight = ellipseWidth;
+        document.getElementById("ellh").value = ellipseHeight;
+    }
+    canResize();
+}
+function decX() {
+    ellipseWidth--;
+    if (ellipseWidth<3) ellipseWidth = 3;
+    document.getElementById("ellw").value = ellipseWidth;
+    if (outerMirrored) {
+        ellipseHeight = ellipseWidth;
+        document.getElementById("ellh").value = ellipseHeight;
+    }
+    canResize();
+}
+function incY() {
+    ellipseHeight++;
+    document.getElementById("ellh").value = ellipseHeight;
+    if (outerMirrored) {
+        ellipseWidth = ellipseHeight;
+        document.getElementById("ellw").value = ellipseWidth;
+    }
+    canResize();
+}
+function decY() {
+    ellipseHeight--;
+    if (ellipseHeight<3) ellipseHeight = 3;
+    document.getElementById("ellh").value = ellipseHeight;
+    if (outerMirrored) {
+        ellipseWidth = ellipseHeight;
+        document.getElementById("ellw").value = ellipseWidth;
+    }
+    canResize();
+}
+function getX() {
+    ellipseWidth = parseInt(document.getElementById("ellw").value) || 3;
+    if (ellipseWidth<3) ellipseWidth = 3;
+    document.getElementById("ellw").value = ellipseWidth;
+    console.log('getX called, width:', ellipseWidth, 'mirrored:', outerMirrored);
+    if (outerMirrored) {
+        ellipseHeight = ellipseWidth;
+        document.getElementById("ellh").value = ellipseHeight;
+        console.log('Mirrored height to:', ellipseHeight);
+    }
+    canResize();
+}
+function getY() {
+    ellipseHeight = parseInt(document.getElementById("ellh").value) || 3;
+    if (ellipseHeight<3) ellipseHeight = 3;
+    document.getElementById("ellh").value = ellipseHeight;
+    console.log('getY called, height:', ellipseHeight, 'mirrored:', outerMirrored);
+    if (outerMirrored) {
+        ellipseWidth = ellipseHeight;
+        document.getElementById("ellw").value = ellipseWidth;
+        console.log('Mirrored width to:', ellipseWidth);
+    }
+    canResize();
+}
+
+function incInnerX() {
+    innerEllipseWidth++;
+    document.getElementById("innerellw").value = innerEllipseWidth;
+    if (innerMirrored) {
+        innerEllipseHeight = innerEllipseWidth;
+        document.getElementById("innerellh").value = innerEllipseHeight;
+    }
+    canResize();
+}
+function decInnerX() {
+    innerEllipseWidth--;
+    if (innerEllipseWidth<1) innerEllipseWidth = 1;
+    document.getElementById("innerellw").value = innerEllipseWidth;
+    if (innerMirrored) {
+        innerEllipseHeight = innerEllipseWidth;
+        document.getElementById("innerellh").value = innerEllipseHeight;
+    }
+    canResize();
+}
+function incInnerY() {
+    innerEllipseHeight++;
+    document.getElementById("innerellh").value = innerEllipseHeight;
+    if (innerMirrored) {
+        innerEllipseWidth = innerEllipseHeight;
+        document.getElementById("innerellw").value = innerEllipseWidth;
+    }
+    canResize();
+}
+function decInnerY() {
+    innerEllipseHeight--;
+    if (innerEllipseHeight<1) innerEllipseHeight = 1;
+    document.getElementById("innerellh").value = innerEllipseHeight;
+    if (innerMirrored) {
+        innerEllipseWidth = innerEllipseHeight;
+        document.getElementById("innerellw").value = innerEllipseWidth;
+    }
+    canResize();
+}
+function getInnerX() {
+    innerEllipseWidth = parseInt(document.getElementById("innerellw").value)
+    if (innerEllipseWidth<1) innerEllipseWidth = 1;
+    document.getElementById("innerellw").value = innerEllipseWidth;
+    if (innerMirrored) {
+        innerEllipseHeight = innerEllipseWidth;
+        document.getElementById("innerellh").value = innerEllipseHeight;
+    }
+    canResize();
+}
+function getInnerY() {
+    innerEllipseHeight = parseInt(document.getElementById("innerellh").value)
+    if (innerEllipseHeight<1) innerEllipseHeight = 1;
+    document.getElementById("innerellh").value = innerEllipseHeight;
+    if (innerMirrored) {
+        innerEllipseWidth = innerEllipseHeight;
+        document.getElementById("innerellw").value = innerEllipseWidth;
+    }
+    canResize();
+}
+
+function toggleOuterMirror() {
+    outerMirrored = !outerMirrored;
+    console.log('Outer mirrored:', outerMirrored);
+    updateMirrorButton('outer-mirror', outerMirrored);
+    
+    // If turning on mirroring, sync the values immediately
+    if (outerMirrored) {
+        ellipseHeight = ellipseWidth;
+        document.getElementById("ellh").value = ellipseHeight;
+        canResize();
+    }
+}
+
+function toggleInnerMirror() {
+    innerMirrored = !innerMirrored;
+    console.log('Inner mirrored:', innerMirrored);
+    updateMirrorButton('inner-mirror', innerMirrored);
+    
+    // If turning on mirroring, sync the values immediately
+    if (innerMirrored) {
+        innerEllipseHeight = innerEllipseWidth;
+        document.getElementById("innerellh").value = innerEllipseHeight;
+        canResize();
+    }
+}
+
+function updateMirrorButton(buttonId, mirrored) {
+    const button = document.getElementById(buttonId);
+    if (!button) {
+        console.warn(`Button with ID '${buttonId}' not found`);
+        return;
+    }
+    
+    const icon = button.querySelector('.material-icons');
+    if (!icon) {
+        console.warn(`Icon not found in button '${buttonId}'`);
+        return;
+    }
+    
+    console.log(`Updating ${buttonId} to mirrored: ${mirrored}`);
+    
+    if (mirrored) {
+        button.classList.add('mirrored');
+        icon.textContent = 'sync';
+        button.title = 'Width/Height mirrored (click to separate)';
+    } else {
+        button.classList.remove('mirrored');
+        icon.textContent = 'sync_disabled';
+        button.title = 'Width/Height separate (click to mirror)';
+    }
+}
+
+function incSpokes() {
+    totalSpokes++;
+    if (totalSpokes > maxSpokes) totalSpokes = maxSpokes;
+    document.getElementById("spokes").value = totalSpokes;
+    canResize();
+}
+
+function decSpokes() {
+    totalSpokes--;
+    if (totalSpokes < 4) totalSpokes = 4;
+    document.getElementById("spokes").value = totalSpokes;
+    canResize();
+}
+
+function getSpokes() {
+    totalSpokes = parseInt(document.getElementById("spokes").value);
+    if (totalSpokes < 4) totalSpokes = 4;
+    if (totalSpokes > maxSpokes) totalSpokes = maxSpokes;
+    document.getElementById("spokes").value = totalSpokes;
+    canResize();
+}
+
+function nextSpoke() {
+    currentSpokeIndex++;
+    canResize();
+}
+
+function prevSpoke() {
+    currentSpokeIndex--;
+    canResize();
+}
+
+function initCanvas() {
+    document.getElementById("ellw").value = ellipseWidth;
+    document.getElementById("ellh").value = ellipseHeight;
+    document.getElementById("innerellw").value = innerEllipseWidth;
+    document.getElementById("innerellh").value = innerEllipseHeight;
+    document.getElementById("spokes").value = totalSpokes;
+    
+    // Initialize mirror buttons after DOM is ready
+    setTimeout(() => {
+        updateMirrorButton('outer-mirror', outerMirrored);
+        updateMirrorButton('inner-mirror', innerMirrored);
+    }, 0);
+    
+    // Initialize theme
+    initTheme();
+    canResize();
+}
+
+function initTheme() {
+    // Default to dark theme
+    document.documentElement.setAttribute('data-theme', 'dark');
+    updateThemeIcon('dark');
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    updateThemeIcon(newTheme);
+    
+    // Redraw canvas with new colors
+    canResize();
+}
+
+function updateThemeIcon(theme) {
+    const themeIcon = document.getElementById('theme-icon');
+    if (themeIcon) {
+        themeIcon.textContent = theme === 'light' ? 'dark_mode' : 'light_mode';
+    }
+}
+
+function modeChange() {
+    let e = document.getElementById("fitmode");
+    fitMode = parseInt(e.options[e.selectedIndex].value);
+    canResize();
+}
+
+function relMouseCoords(currentElement, event){
+    var totalOffsetX = 0;
+    var totalOffsetY = 0;
+    var canvasX = 0;
+    var canvasY = 0;
+    var element = currentElement;
+
+    do{
+        totalOffsetX += element.offsetLeft - element.scrollLeft;
+        totalOffsetY += element.offsetTop - element.scrollTop;
+    }
+    while(element = element.offsetParent)
+
+    canvasX = event.pageX - totalOffsetX;
+    canvasY = event.pageY - totalOffsetY;
+
+    return {x:canvasX, y:canvasY}
+}
+
+function canvasMouseDown(event) {
+    let can = document.getElementById("myCanvas");
+    let coords = relMouseCoords(can, event)
+    
+    if (event.buttons!=null ? (event.buttons & 1) : (event.which==1)) {
+        selection[0] = selection[2] = parseInt((coords.x - scale[0]) * ellipseWidth / canWidth);
+        selection[1] = selection[3] = parseInt((coords.y - scale[1]) * ellipseHeight / canHeight);
+    
+        canResize();
+        makingSelection = true;    
+    } else if (event.buttons!=null ? (event.buttons & 2) : (event.which==3)) {
+        if (scale[2] > 1 || fitMode!=0) {
+            pan_data[0] = scale[0];
+            pan_data[1] = scale[1];
+            pan_data[2] = coords.x;
+            pan_data[3] = coords.y;
+            panning = true;
+        } else {
+            scale = [0, 0, 1, 1]
+        }
+        
+        canResize();
+    }
+    
+    return false;
+}
+
+function canvasMouseMove(event) {
+    if (makingSelection) { 
+        let can = document.getElementById("myCanvas");
+        let coords = relMouseCoords(can, event)
+        selection[2] = parseInt((coords.x - scale[0]) * ellipseWidth / canWidth);
+        selection[3] = parseInt((coords.y - scale[1]) * ellipseHeight / canHeight);
+    
+        canResize();
+    } else if (panning) {
+        let can = document.getElementById("myCanvas");
+        let coords = relMouseCoords(can, event)
+        
+        scale[0] = pan_data[0] + (coords.x - pan_data[2]);
+        scale[1] = pan_data[1] + (coords.y - pan_data[3]);
+        
+        canResize();
+    }
+
+    return false;
+}
+
+function canvasMouseUp(event) {
+    if (makingSelection) {
+        let can = document.getElementById("myCanvas");
+        let coords = relMouseCoords(can, event)
+        selection[2] = parseInt((coords.x - scale[0]) * ellipseWidth / canWidth);
+        selection[3] = parseInt((coords.y - scale[1]) * ellipseHeight / canHeight);
+    
+        canResize();
+        makingSelection = false;
+    } else if (panning) {
+        let can = document.getElementById("myCanvas");
+        let coords = relMouseCoords(can, event)
+        
+        scale[0] = pan_data[0] + (coords.x - pan_data[2]);
+        scale[1] = pan_data[1] + (coords.y - pan_data[3]);
+        
+        canResize();
+        panning = false;
+    }
+
+    return false;
+}
+
+function MouseWheelHandler(e) {
+    let can = document.getElementById("myCanvas");
+    let coords = relMouseCoords(can, e)
+    
+    let delta = e.wheelDelta ? e.wheelDelta : -e.detail;
+    
+    if (delta < 0) {
+        scale[2] *= 0.5;
+        scale[3] *= 0.5;
+        scale[0] = coords.x - (coords.x - scale[0])*0.5;
+        scale[1] = coords.y - (coords.y - scale[1])*0.5;
+    } else {
+        scale[2] *= 2;
+        scale[3] *= 2;
+        scale[0] = coords.x - (coords.x - scale[0])*2;
+        scale[1] = coords.y - (coords.y - scale[1])*2;
+    }
+    
+    if (scale[2] <= 1) {
+        scale[2] = 1;
+        scale[3] = 1;
+        scale[0] = 0;
+        scale[1] = 0;
+    }
+    
+    canResize();
+
+    return false;
+}
+
+</script>
+
+</head>
+
+<body onresize="canResize()" onload="initCanvas()">
+    
+<header class="top-app-bar">
+    <h1>Ellipse & Staircase Generator</h1>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+        <span class="material-icons" id="theme-icon">light_mode</span>
+    </button>
+</header>
+
+<div class="content">
+    <div class="controls-panel">
+        
+        <!-- Outer Ellipse -->
+        <div class="surface">
+            <h2>Outer Ellipse</h2>
+            <div class="control-group">
+                <span class="label">Width</span>
+                <button class="btn btn-filled" onclick="decX()">−</button>
+                <input type="text" id="ellw" class="input-field" onkeyup="getX()">
+                <button class="btn btn-filled" onclick="incX()">+</button>
+                <button class="btn btn-mirror" id="outer-mirror" onclick="toggleOuterMirror()" title="Width/Height mirrored (click to separate)">
+                    <span class="material-icons">sync</span>
+                </button>
+            </div>
+            <div class="control-group">
+                <span class="label">Height</span>
+                <button class="btn btn-filled" onclick="decY()">−</button>
+                <input type="text" id="ellh" class="input-field" onkeyup="getY()">
+                <button class="btn btn-filled" onclick="incY()">+</button>
+            </div>
+        </div>
+
+        <!-- Inner Ellipse -->
+        <div class="surface">
+            <h2>Inner Ellipse</h2>
+            <div class="control-group">
+                <span class="label">Width</span>
+                <button class="btn btn-filled" onclick="decInnerX()">−</button>
+                <input type="text" id="innerellw" class="input-field" onkeyup="getInnerX()">
+                <button class="btn btn-filled" onclick="incInnerX()">+</button>
+                <button class="btn btn-mirror" id="inner-mirror" onclick="toggleInnerMirror()" title="Width/Height mirrored (click to separate)">
+                    <span class="material-icons">sync</span>
+                </button>
+            </div>
+            <div class="control-group">
+                <span class="label">Height</span>
+                <button class="btn btn-filled" onclick="decInnerY()">−</button>
+                <input type="text" id="innerellh" class="input-field" onkeyup="getInnerY()">
+                <button class="btn btn-filled" onclick="incInnerY()">+</button>
+            </div>
+        </div>
+
+        <!-- Spokes -->
+        <div class="surface">
+            <h2>Spokes</h2>
+            <div class="control-group">
+                <span class="label">Count</span>
+                <button class="btn btn-filled" onclick="decSpokes()">−</button>
+                <input type="text" id="spokes" class="input-field" onkeyup="getSpokes()">
+                <button class="btn btn-filled" onclick="incSpokes()">+</button>
+            </div>
+            <div class="spoke-controls">
+                <button class="btn btn-outlined" onclick="prevSpoke()">
+                    <span class="material-icons">chevron_left</span>
+                    Prev
+                </button>
+                <button class="btn btn-outlined" onclick="nextSpoke()">
+                    Next
+                    <span class="material-icons">chevron_right</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Display -->
+        <div class="surface">
+            <h2>Display</h2>
+            <div class="control-group">
+                <span class="label">Fit Mode</span>
+                <div class="select">
+                    <select id="fitmode" onchange="modeChange()">
+                        <option value="0" selected>Fit to window</option>
+                        <option value="1">Fit width</option>
+                        <option value="2">Fit height</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="instructions">
+            <div class="instruction-row">
+                <span class="material-icons">mouse</span>
+                <span>Click + drag to select area</span>
+            </div>
+            <div class="instruction-row">
+                <span class="material-icons">pan_tool</span>
+                <span>Right-click + drag to pan</span>
+            </div>
+            <div class="instruction-row">
+                <span class="material-icons">zoom_in</span>
+                <span>Mouse wheel to zoom</span>
+            </div>
+        </div>
+
+        <!-- Credits -->
+        <div class="surface" style="font-size: 12px; padding: 12px;">
+            <div style="color: var(--on-surface-variant); line-height: 1.4;">
+                <div style="margin-bottom: 8px;">
+                    <strong>Based on the original work by:</strong><br>
+                    Timothy Miller, Binghamton University
+                </div>
+                <div>
+                    <a href="https://www.cs.binghamton.edu/~millerti/circlegen.html" 
+                       target="_blank" 
+                       style="color: var(--primary); text-decoration: none;"
+                       onmouseover="this.style.textDecoration='underline'"
+                       onmouseout="this.style.textDecoration='none'">
+                        View Original Version →
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="canvas-container" id="canvas-container">
+        <canvas id="myCanvas"></canvas>
+    </div>
+</div>
+
+<script>
+let can = document.getElementById("myCanvas");
+can.addEventListener('mousedown', canvasMouseDown);
+can.addEventListener('mousemove', canvasMouseMove);
+can.addEventListener('mouseup', canvasMouseUp);
+can.addEventListener('mouseleave', canvasMouseUp);
+can.addEventListener("mousewheel", MouseWheelHandler, false);
+can.addEventListener("DOMMouseScroll", MouseWheelHandler, false);
+can.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+}, false);
+
+initCanvas();
+</script>
+
+</body>
+</html>
