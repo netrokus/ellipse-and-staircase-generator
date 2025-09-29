@@ -459,10 +459,12 @@ var scene, camera, renderer, controls;
 var staircaseDirection = 1; // 1 for up, -1 for down
 var stepHeight = 1;
 var startingSpoke = 0;
-var rotations = 2;
+var rotations = 1;
 var cameraTarget = new THREE.Vector3(0, 0, 0);
 var keys = {};
-var moveSpeed = 0.5;
+var moveSpeed = 0.2;
+var fillSteps = false;
+var showSingleStep = false;
 
 function paintGrid(ctx) {
     ctx.beginPath();
@@ -612,11 +614,46 @@ function getEllipseData() {
             }
         }
 
-        const angle = (currentSpokeIndex / totalSpokes) * 2 * Math.PI;
-        const endX = cx + rx * Math.cos(angle);
-        const endY = cy + ry * Math.sin(angle);
-
-        plotLine(cx, cy, endX, endY, arr_spokes);
+        const currentAngle = (currentSpokeIndex / totalSpokes) * 2 * Math.PI;
+        const nextAngle = ((currentSpokeIndex + 1) / totalSpokes) * 2 * Math.PI;
+        
+        if (fillSteps) {
+            // Fill the entire wedge between spokes
+            for (let j = 0; j < eh; j++) {
+                for (let i = 0; i < ew; i++) {
+                    // Calculate angle of this block from center
+                    const dx = i - cx;
+                    const dy = j - cy;
+                    const blockAngle = Math.atan2(dy, dx);
+                    
+                    // Normalize angles to 0-2π
+                    const normBlockAngle = blockAngle < 0 ? blockAngle + 2 * Math.PI : blockAngle;
+                    const normCurrentAngle = currentAngle < 0 ? currentAngle + 2 * Math.PI : currentAngle;
+                    const normNextAngle = nextAngle < 0 ? nextAngle + 2 * Math.PI : nextAngle;
+                    
+                    // Check if block is within the angular wedge
+                    let inWedge = false;
+                    if (normNextAngle > normCurrentAngle) {
+                        inWedge = normBlockAngle >= normCurrentAngle && normBlockAngle <= normNextAngle;
+                    } else {
+                        // Handle wrapping around 0
+                        inWedge = normBlockAngle >= normCurrentAngle || normBlockAngle <= normNextAngle;
+                    }
+                    
+                    // Check if in the ring (between inner and outer ellipse)
+                    const inRing = !inside(i, j, cx, cy, inner_rx, inner_ry) && inside(i, j, cx, cy, rx, ry);
+                    
+                    if (inWedge && inRing) {
+                        arr_spokes[j][i] = true;
+                    }
+                }
+            }
+        } else {
+            // Original single line spoke
+            const endX = cx + rx * Math.cos(currentAngle);
+            const endY = cy + ry * Math.sin(currentAngle);
+            plotLine(cx, cy, endX, endY, arr_spokes);
+        }
 
         for (let j = 0; j < eh; j++) {
             for (let i = 0; i < ew; i++) {
@@ -902,16 +939,36 @@ function generate3DStaircase() {
     // Generate staircase with full block structure at each level
     const totalSteps = totalSpokes * rotations;
     
-    for (let step = 0; step < totalSteps; step++) {
-        const spokeIndex = (startingSpoke + step) % totalSpokes;
-        const y = step * stepHeight * staircaseDirection * 0.5;
+    if (showSingleStep) {
+        // Show steps from 0 to current spoke index (building incrementally)
+        if (currentSpokeIndex >= totalSpokes) { currentSpokeIndex = 0; }
+        if (currentSpokeIndex < 0) { currentSpokeIndex = totalSpokes - 1; }
         
-        // Generate all blocks for this level
-        generateLevelBlocks(ellipseData, spokeIndex, y, blockMaterial);
-        
-        // Draw ellipse outlines at this level
-        drawEllipseRing(ellipseData.radiusX * 0.5, ellipseData.radiusY * 0.5, y, isDark ? 0xf2b8b5 : 0xd32f2f, 0.3);
-        drawEllipseRing(ellipseData.innerRadiusX * 0.5, ellipseData.innerRadiusY * 0.5, y, isDark ? 0xa8c7fa : 0x1565c0, 0.3);
+        // Build from step 0 to currentSpokeIndex
+        for (let step = 0; step <= currentSpokeIndex; step++) {
+            const spokeIndex = (startingSpoke + step) % totalSpokes;
+            const y = step * stepHeight * staircaseDirection * 0.5;
+            
+            // Generate blocks for this level
+            generateLevelBlocks(ellipseData, spokeIndex, y, blockMaterial);
+            
+            // Draw ellipse outlines at this level
+            drawEllipseRing(ellipseData.radiusX * 0.5, ellipseData.radiusY * 0.5, y, isDark ? 0xf2b8b5 : 0xd32f2f, 0.3);
+            drawEllipseRing(ellipseData.innerRadiusX * 0.5, ellipseData.innerRadiusY * 0.5, y, isDark ? 0xa8c7fa : 0x1565c0, 0.3);
+        }
+    } else {
+        // Show full spiral staircase
+        for (let step = 0; step < totalSteps; step++) {
+            const spokeIndex = (startingSpoke + step) % totalSpokes;
+            const y = step * stepHeight * staircaseDirection * 0.5;
+            
+            // Generate all blocks for this level
+            generateLevelBlocks(ellipseData, spokeIndex, y, blockMaterial);
+            
+            // Draw ellipse outlines at this level
+            drawEllipseRing(ellipseData.radiusX * 0.5, ellipseData.radiusY * 0.5, y, isDark ? 0xf2b8b5 : 0xd32f2f, 0.3);
+            drawEllipseRing(ellipseData.innerRadiusX * 0.5, ellipseData.innerRadiusY * 0.5, y, isDark ? 0xa8c7fa : 0x1565c0, 0.3);
+        }
     }
     
     render3D();
@@ -960,11 +1017,47 @@ function generateLevelBlocks(ellipseData, spokeIndex, height, material) {
         }
     }
     
-    // Add spoke for this level
-    const angle = (spokeIndex / totalSpokes) * 2 * Math.PI;
-    const endX = cx + rx * Math.cos(angle);
-    const endY = cy + ry * Math.sin(angle);
-    plotLine(cx, cy, endX, endY, arr_spokes);
+    // Calculate angles for wedge filling
+    const currentAngle = (spokeIndex / totalSpokes) * 2 * Math.PI;
+    const nextAngle = ((spokeIndex + 1) / totalSpokes) * 2 * Math.PI;
+    
+    if (fillSteps) {
+        // Fill the entire wedge between spokes
+        for (let j = 0; j < eh; j++) {
+            for (let i = 0; i < ew; i++) {
+                // Calculate angle of this block from center
+                const dx = i - cx;
+                const dy = j - cy;
+                const blockAngle = Math.atan2(dy, dx);
+                
+                // Normalize angles to 0-2π
+                const normBlockAngle = blockAngle < 0 ? blockAngle + 2 * Math.PI : blockAngle;
+                const normCurrentAngle = currentAngle < 0 ? currentAngle + 2 * Math.PI : currentAngle;
+                const normNextAngle = nextAngle < 0 ? nextAngle + 2 * Math.PI : nextAngle;
+                
+                // Check if block is within the angular wedge
+                let inWedge = false;
+                if (normNextAngle > normCurrentAngle) {
+                    inWedge = normBlockAngle >= normCurrentAngle && normBlockAngle <= normNextAngle;
+                } else {
+                    // Handle wrapping around 0
+                    inWedge = normBlockAngle >= normCurrentAngle || normBlockAngle <= normNextAngle;
+                }
+                
+                // Check if in the ring (between inner and outer ellipse)
+                const inRing = !inside(i, j, cx, cy, inner_rx, inner_ry) && inside(i, j, cx, cy, rx, ry);
+                
+                if (inWedge && inRing) {
+                    arr_spokes[j][i] = true;
+                }
+            }
+        }
+    } else {
+        // Original single line spoke
+        const endX = cx + rx * Math.cos(currentAngle);
+        const endY = cy + ry * Math.sin(currentAngle);
+        plotLine(cx, cy, endX, endY, arr_spokes);
+    }
     
     // Mark inner hole
     for (let j = 0; j < eh; j++) {
@@ -1018,7 +1111,7 @@ function generateLevelBlocks(ellipseData, spokeIndex, height, material) {
     }
     
     // Create instanced meshes for better performance
-    const boxGeometry = new THREE.BoxGeometry(blockSize, blockSize * 0.5, blockSize);
+    const boxGeometry = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
     
     if (outerPositions.length > 0) {
         const outerMesh = new THREE.InstancedMesh(boxGeometry, outerMaterial, outerPositions.length);
@@ -1053,6 +1146,21 @@ function generateLevelBlocks(ellipseData, spokeIndex, height, material) {
         spokeMesh.receiveShadow = true;
         spokeMesh.userData.isBlock = true;
         scene.add(spokeMesh);
+        
+        // Add subtle edges for spoke blocks
+        const edgeGeometry = new THREE.EdgesGeometry(boxGeometry);
+        const edgeMaterial = new THREE.LineBasicMaterial({ 
+            color: isDark ? 0x49454f : 0xcac4d0,
+            transparent: true,
+            opacity: 0.5
+        });
+        const edgesMesh = new THREE.InstancedMesh(edgeGeometry, edgeMaterial, spokePositions.length);
+        spokePositions.forEach((pos, i) => {
+            matrix.setPosition(pos.x, pos.y, pos.z);
+            edgesMesh.setMatrixAt(i, matrix);
+        });
+        edgesMesh.userData.isBlock = true;
+        scene.add(edgesMesh);
     }
 }
 
@@ -1372,6 +1480,8 @@ function toggle3DMode() {
     const scene3D = document.getElementById('scene3d');
     const toggleBtn = document.getElementById('view-toggle');
     const staircaseControls = document.getElementById('staircase-controls');
+    const displaySection = document.getElementById('display-section');
+    const spokeNavButtons = document.getElementById('spoke-nav-buttons');
     
     if (is3DMode) {
         canvas2D.style.display = 'none';
@@ -1379,6 +1489,12 @@ function toggle3DMode() {
         toggleBtn.classList.add('active');
         toggleBtn.innerHTML = '<span class="material-icons">view_in_ar</span> 3D Mode';
         staircaseControls.style.display = 'block';
+        displaySection.style.display = 'none'; // Hide display section in 3D
+        
+        // Hide spoke nav buttons initially (shown only in single step mode)
+        if (!showSingleStep) {
+            spokeNavButtons.style.display = 'none';
+        }
         
         if (!scene) {
             init3D();
@@ -1392,6 +1508,8 @@ function toggle3DMode() {
         toggleBtn.classList.remove('active');
         toggleBtn.innerHTML = '<span class="material-icons">grid_view</span> 2D Mode';
         staircaseControls.style.display = 'none';
+        displaySection.style.display = 'block'; // Show display section in 2D
+        spokeNavButtons.style.display = 'flex'; // Always show in 2D
         canResize();
     }
 }
@@ -1489,6 +1607,43 @@ function getStartSpoke() {
     if (is3DMode) generate3DStaircase();
 }
 
+function toggleFillSteps() {
+    fillSteps = !fillSteps;
+    const button = document.getElementById('fill-steps-toggle');
+    if (fillSteps) {
+        button.classList.add('mirrored');
+        button.querySelector('.material-icons').textContent = 'layers';
+        button.title = 'Fill steps enabled (click to disable)';
+    } else {
+        button.classList.remove('mirrored');
+        button.querySelector('.material-icons').textContent = 'more_horiz';
+        button.title = 'Fill steps disabled (click to enable)';
+    }
+    updateView();
+}
+
+function toggleSingleStep() {
+    showSingleStep = !showSingleStep;
+    const button = document.getElementById('single-step-toggle');
+    const spokeNavButtons = document.getElementById('spoke-nav-buttons');
+    const startSpokeControl = document.getElementById('start-spoke-control');
+    
+    if (showSingleStep) {
+        button.classList.add('mirrored');
+        button.querySelector('.material-icons').textContent = 'filter_1';
+        button.title = 'Showing single step (click to show all)';
+        spokeNavButtons.style.display = 'flex'; // Show Previous/Next in single step mode
+        startSpokeControl.style.display = 'none'; // Hide start spoke in single step mode
+    } else {
+        button.classList.remove('mirrored');
+        button.querySelector('.material-icons').textContent = 'view_carousel';
+        button.title = 'Showing all steps (click to show single)';
+        spokeNavButtons.style.display = 'none'; // Hide Previous/Next in show all mode
+        startSpokeControl.style.display = 'flex'; // Show start spoke in show all mode
+    }
+    if (is3DMode) generate3DStaircase();
+}
+
 function initCanvas() {
     document.getElementById("ellw").value = ellipseWidth;
     document.getElementById("ellh").value = ellipseHeight;
@@ -1496,13 +1651,25 @@ function initCanvas() {
     document.getElementById("innerellh").value = innerEllipseHeight;
     document.getElementById("spokes").value = totalSpokes;
     document.getElementById("stepheight").value = stepHeight;
-    document.getElementById("rotations").value = rotations;
     document.getElementById("startspoke").value = startingSpoke;
     
     setTimeout(() => {
         updateMirrorButton('outer-mirror', outerMirrored);
         updateMirrorButton('inner-mirror', innerMirrored);
         setDirection(1); // Default to upward
+        
+        // Initialize toggle buttons
+        const fillStepsBtn = document.getElementById('fill-steps-toggle');
+        if (fillStepsBtn) {
+            fillStepsBtn.classList.remove('mirrored');
+            fillStepsBtn.querySelector('.material-icons').textContent = 'more_horiz';
+        }
+        
+        const singleStepBtn = document.getElementById('single-step-toggle');
+        if (singleStepBtn) {
+            singleStepBtn.classList.remove('mirrored');
+            singleStepBtn.querySelector('.material-icons').textContent = 'view_carousel';
+        }
     }, 0);
     
     initTheme();
@@ -1742,7 +1909,13 @@ function MouseWheelHandler(e) {
                 <input type="text" id="spokes" class="input-field" onkeyup="getSpokes()">
                 <button class="btn btn-filled" onclick="incSpokes()">+</button>
             </div>
-            <div class="spoke-controls">
+            <div class="control-group">
+                <span class="label">Fill Steps</span>
+                <button class="btn btn-mirror" id="fill-steps-toggle" onclick="toggleFillSteps()" title="Fill steps disabled (click to enable)">
+                    <span class="material-icons">more_horiz</span>
+                </button>
+            </div>
+            <div class="spoke-controls" id="spoke-nav-buttons">
                 <button class="btn btn-outlined" onclick="prevSpoke()">
                     <span class="material-icons">chevron_left</span>
                     Previous
@@ -1757,6 +1930,13 @@ function MouseWheelHandler(e) {
         <!-- 3D Staircase Controls -->
         <div class="surface" id="staircase-controls" style="display: none;">
             <h2>3D Staircase</h2>
+            
+            <div class="control-group">
+                <span class="label">View Mode</span>
+                <button class="btn btn-mirror" id="single-step-toggle" onclick="toggleSingleStep()" title="Showing all steps (click to show single)">
+                    <span class="material-icons">view_carousel</span>
+                </button>
+            </div>
             
             <div class="control-group">
                 <span class="label">Direction</span>
@@ -1779,14 +1959,7 @@ function MouseWheelHandler(e) {
                 <button class="btn btn-filled" onclick="incStepHeight()">+</button>
             </div>
             
-            <div class="control-group">
-                <span class="label">Rotations</span>
-                <button class="btn btn-filled" onclick="decRotations()">−</button>
-                <input type="text" id="rotations" class="input-field" onkeyup="getRotations()">
-                <button class="btn btn-filled" onclick="incRotations()">+</button>
-            </div>
-            
-            <div class="control-group">
+            <div class="control-group" id="start-spoke-control">
                 <span class="label">Start Spoke</span>
                 <button class="btn btn-filled" onclick="decStartSpoke()">−</button>
                 <input type="text" id="startspoke" class="input-field" onkeyup="getStartSpoke()">
@@ -1795,7 +1968,7 @@ function MouseWheelHandler(e) {
         </div>
 
         <!-- Display -->
-        <div class="surface">
+        <div class="surface" id="display-section">
             <h2>Display</h2>
             <div class="control-group">
                 <span class="label">Fit Mode</span>
@@ -1822,6 +1995,10 @@ function MouseWheelHandler(e) {
             <div class="instruction-row">
                 <span class="material-icons">zoom_in</span>
                 <span>Mouse wheel to zoom</span>
+            </div>
+            <div class="instruction-row">
+                <span class="material-icons">layers</span>
+                <span>Fill Steps: Solid wedge between spokes</span>
             </div>
             <div class="instruction-row">
                 <span class="material-icons">view_in_ar</span>
