@@ -2,7 +2,7 @@
 
 **A modern, enhanced version of the Minecraft Circle Generator with Material Design UI**
 
-![Preview](https://via.placeholder.com/800x400/1565c0/ffffff?text=Ellipse+Generator+Preview)
+![Preview](pending)
 
 ## 🌟 Features
 
@@ -17,13 +17,13 @@
 
 ## 🚀 Live Demo
 
-**[Try it now →](https://your-username.github.io/ellipse-generator)**
+**[Try it now →](https://netrokus.github.io/index.html)**
 
 ## 📱 Screenshots
 
 | Light Theme | Dark Theme |
 |-------------|------------|
-| ![Light Theme](https://via.placeholder.com/400x300/ffffff/000000?text=Light+Theme) | ![Dark Theme](https://via.placeholder.com/400x300/1d1b20/ffffff?text=Dark+Theme) |
+| ![Light Theme](pending) | ![Dark Theme](pending) |
 
 ## 🎮 How to Use
 
@@ -142,8 +142,8 @@ If you find this tool helpful for your Minecraft builds, please consider giving 
 
 ## 📞 Contact
 
-- **Issues**: [GitHub Issues](https://github.com/your-username/ellipse-generator/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/ellipse-generator/discussions)
+- **Issues**: [GitHub Issues](https://github.com/netrokus/ellipse-generator/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/netrokus/ellipse-generator/discussions)
 
 ---
 
