@@ -2,7 +2,8 @@
 
 **A modern, enhanced version of the Minecraft Circle Generator with Material Design UI**
 
-![Preview](https://github.com/netrokus/ellipse-and-staircase-generator/blob/main/screenshots/dark-theme.png)
+![2D Preview](https://github.com/netrokus/ellipse-and-staircase-generator/blob/main/screenshots/dark-theme.png)
+![3D Preview](https://github.com/netrokus/ellipse-and-staircase-generator/blob/main/screenshots/3D%20Preview.png)
 
 ## 🌟 Features
 
@@ -126,7 +127,7 @@ Contributions are welcome! Please feel free to submit issues and enhancement req
 ### Ideas for Future Enhancements
 - [ ] Export as image/SVG
 - [ ] Save/load patterns
-- [ ] 3D visualization mode
+- [ ] ~~3D visualization mode~~
 - [ ] Pattern library/presets
 - [ ] Block material selection
 - [ ] Measurement tools
