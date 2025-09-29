@@ -98,6 +98,12 @@ body {
   font-weight: 400;
 }
 
+.header-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .theme-toggle {
   background: none;
   border: none;
@@ -119,6 +125,30 @@ body {
   font-size: 24px;
 }
 
+.view-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--on-primary);
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.view-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.view-toggle.active {
+  background: var(--on-primary);
+  color: var(--primary);
+}
+
 .content {
   flex: 1;
   display: flex;
@@ -132,6 +162,27 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 8px;
+}
+
+.controls-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.controls-panel::-webkit-scrollbar-track {
+  background: var(--surface-variant);
+  border-radius: 4px;
+}
+
+.controls-panel::-webkit-scrollbar-thumb {
+  background: var(--outline);
+  border-radius: 4px;
+}
+
+.controls-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--outline-variant);
 }
 
 .surface {
@@ -254,10 +305,14 @@ body {
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-#myCanvas {
+#myCanvas, #scene3d {
   display: block;
   width: 100%;
   height: 100%;
+}
+
+#scene3d {
+  display: none;
 }
 
 .spoke-controls {
@@ -332,7 +387,50 @@ body {
   border-color: var(--primary);
   border-width: 2px;
 }
+
+.staircase-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.direction-toggle {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface-variant);
+  border-radius: 8px;
+}
+
+.direction-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.direction-btn.active {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: 0px 1px 2px var(--shadow);
+}
+
+.direction-btn:hover:not(.active) {
+  background: var(--selection-bg);
+}
 </style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <script>
 var ellipseWidth = 40
@@ -348,12 +446,23 @@ var fitMode = 0;
 var scale = [0, 0, 1, 1]
 var pan_data = [0, 0, 0, 0]
 var currentSpokeIndex = 0;
-var totalSpokes = 32; // Default spoke count
+var totalSpokes = 32;
 var maxSpokes = 64;
 
-// FIX: Initialize mirror state variables
-var outerMirrored = true;  // Default to mirrored
-var innerMirrored = true;  // Default to mirrored
+// Initialize mirror state variables
+var outerMirrored = true;
+var innerMirrored = true;
+
+// 3D Mode variables
+var is3DMode = false;
+var scene, camera, renderer, controls;
+var staircaseDirection = 1; // 1 for up, -1 for down
+var stepHeight = 1;
+var startingSpoke = 0;
+var rotations = 2;
+var cameraTarget = new THREE.Vector3(0, 0, 0);
+var keys = {};
+var moveSpeed = 0.5;
 
 function paintGrid(ctx) {
     ctx.beginPath();
@@ -455,7 +564,7 @@ function plotLine(x0, y0, x1, y1, grid) {
     }
 }
 
-function circle2(ctx) {
+function getEllipseData() {
     let ew = ellipseWidth;
     let eh = ellipseHeight;
     let inner_ew = innerEllipseWidth;
@@ -476,6 +585,7 @@ function circle2(ctx) {
     const inner_rx = inner_ew / 2.0;
     const inner_ry = inner_eh / 2.0;
     
+    // Outer ellipse
     for (let j = 0; j < eh; j++) {
         for (let i = 0; i < ew; i++) {
             if (through(i, j, cx, cy, rx, ry)) {
@@ -487,40 +597,62 @@ function circle2(ctx) {
         }
     }
     
-    if (currentSpokeIndex >= totalSpokes) { currentSpokeIndex = 0; }
-    if (currentSpokeIndex < 0) { currentSpokeIndex = totalSpokes - 1; }
+    // Add current spoke if not in 3D mode
+    if (!is3DMode) {
+        if (currentSpokeIndex >= totalSpokes) { currentSpokeIndex = 0; }
+        if (currentSpokeIndex < 0) { currentSpokeIndex = totalSpokes - 1; }
 
-    const arr_spokes = make2dArray(eh);
-    const arr_hole = make2dArray(eh);
-    
-    for (let j = 0; j < eh; j++) {
-        for (let i = 0; i < ew; i++) {
-            arr_spokes[j][i] = false;
-            arr_hole[j][i] = false;
+        const arr_spokes = make2dArray(eh);
+        const arr_hole = make2dArray(eh);
+        
+        for (let j = 0; j < eh; j++) {
+            for (let i = 0; i < ew; i++) {
+                arr_spokes[j][i] = false;
+                arr_hole[j][i] = false;
+            }
         }
-    }
 
-    const angle = (currentSpokeIndex / totalSpokes) * 2 * Math.PI;
-    const endX = cx + rx * Math.cos(angle);
-    const endY = cy + ry * Math.sin(angle);
+        const angle = (currentSpokeIndex / totalSpokes) * 2 * Math.PI;
+        const endX = cx + rx * Math.cos(angle);
+        const endY = cy + ry * Math.sin(angle);
 
-    plotLine(cx, cy, endX, endY, arr_spokes);
+        plotLine(cx, cy, endX, endY, arr_spokes);
 
-    for (let j = 0; j < eh; j++) {
-        for (let i = 0; i < ew; i++) {
-            if (inside(i, j, cx, cy, inner_rx, inner_ry)) {
-                arr_hole[j][i] = true;
+        for (let j = 0; j < eh; j++) {
+            for (let i = 0; i < ew; i++) {
+                if (inside(i, j, cx, cy, inner_rx, inner_ry)) {
+                    arr_hole[j][i] = true;
+                }
+            }
+        }
+
+        for (let j = 0; j < eh; j++) {
+            for (let i = 0; i < ew; i++) {
+                if (arr_spokes[j] && arr_spokes[j][i] && !(arr_hole[j] && arr_hole[j][i])) {
+                    arr_final[j][i] = true;
+                }
             }
         }
     }
 
-    for (let j = 0; j < eh; j++) {
-        for (let i = 0; i < ew; i++) {
-            if (arr_spokes[j] && arr_spokes[j][i] && !(arr_hole[j] && arr_hole[j][i])) {
-                arr_final[j][i] = true;
-            }
-        }
-    }
+    return {
+        data: arr_final,
+        width: ew,
+        height: eh,
+        centerX: cx,
+        centerY: cy,
+        radiusX: rx,
+        radiusY: ry,
+        innerRadiusX: inner_rx,
+        innerRadiusY: inner_ry
+    };
+}
+
+function circle2(ctx) {
+    const ellipseData = getEllipseData();
+    const arr_final = ellipseData.data;
+    const ew = ellipseData.width;
+    const eh = ellipseData.height;
 
     // Get theme colors from CSS variables
     const rootStyles = getComputedStyle(document.documentElement);
@@ -555,22 +687,449 @@ function circle2(ctx) {
     ctx.beginPath();
     ctx.strokeStyle = ellipseOuter;
     ctx.lineWidth = 2;
-    ctx.ellipse((cx + 0.5) * canWidth / ew + scale[0], (cy + 0.5) * canHeight / eh + scale[1], rx * canWidth / ew, ry * canHeight / eh, 0, 0, 2 * Math.PI);
+    ctx.ellipse((ellipseData.centerX + 0.5) * canWidth / ew + scale[0], 
+                (ellipseData.centerY + 0.5) * canHeight / eh + scale[1], 
+                ellipseData.radiusX * canWidth / ew, 
+                ellipseData.radiusY * canHeight / eh, 0, 0, 2 * Math.PI);
     ctx.stroke();
 
     ctx.beginPath();
     ctx.strokeStyle = ellipseInner;
     ctx.lineWidth = 2;
-    ctx.ellipse((cx + 0.5) * canWidth / ew + scale[0], (cy + 0.5) * canHeight / eh + scale[1], inner_rx * canWidth / ew, inner_ry * canHeight / eh, 0, 0, 2 * Math.PI);
+    ctx.ellipse((ellipseData.centerX + 0.5) * canWidth / ew + scale[0], 
+                (ellipseData.centerY + 0.5) * canHeight / eh + scale[1], 
+                ellipseData.innerRadiusX * canWidth / ew, 
+                ellipseData.innerRadiusY * canHeight / eh, 0, 0, 2 * Math.PI);
     ctx.stroke();
 
     paintGrid(ctx);
+}
+
+function init3D() {
+    const container = document.getElementById('scene3d');
+    const rect = container.getBoundingClientRect();
+    
+    // Scene setup
+    scene = new THREE.Scene();
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    scene.background = new THREE.Color(isDark ? 0x141218 : 0xfefbff);
+    
+    // Camera setup
+    camera = new THREE.PerspectiveCamera(75, rect.width / rect.height, 0.1, 1000);
+    camera.position.set(20, 15, 20);
+    
+    // Reset camera target
+    cameraTarget.set(0, 0, 0);
+    camera.lookAt(cameraTarget);
+    
+    // Renderer setup
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(rect.width, rect.height);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    
+    container.appendChild(renderer.domElement);
+    
+    // Lighting
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+    scene.add(ambientLight);
+    
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(50, 50, 25);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.mapSize.width = 2048;
+    directionalLight.shadow.mapSize.height = 2048;
+    scene.add(directionalLight);
+    
+    // Mouse controls
+    let mouseDown = false;
+    let mouseX = 0;
+    let mouseY = 0;
+    
+    container.addEventListener('mousedown', (e) => {
+        mouseDown = true;
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        container.focus();
+    });
+    
+    container.addEventListener('mousemove', (e) => {
+        if (!mouseDown) return;
+        
+        const deltaX = e.clientX - mouseX;
+        const deltaY = e.clientY - mouseY;
+        
+        if (e.shiftKey) {
+            // Pan mode: move camera and target together
+            const right = new THREE.Vector3();
+            const up = new THREE.Vector3(0, 1, 0);
+            camera.getWorldDirection(right);
+            right.cross(up).normalize();
+            
+            const panSpeed = 0.05;
+            const panX = right.clone().multiplyScalar(-deltaX * panSpeed);
+            const panY = up.clone().multiplyScalar(deltaY * panSpeed);
+            
+            camera.position.add(panX).add(panY);
+            cameraTarget.add(panX).add(panY);
+        } else {
+            // Rotate mode: orbit around target
+            const offset = new THREE.Vector3().subVectors(camera.position, cameraTarget);
+            const spherical = new THREE.Spherical().setFromVector3(offset);
+            
+            spherical.theta -= deltaX * 0.01;
+            spherical.phi += deltaY * 0.01;
+            spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
+            
+            offset.setFromSpherical(spherical);
+            camera.position.copy(cameraTarget).add(offset);
+        }
+        
+        camera.lookAt(cameraTarget);
+        
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        
+        render3D();
+    });
+    
+    container.addEventListener('mouseup', () => {
+        mouseDown = false;
+    });
+    
+    container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const offset = new THREE.Vector3().subVectors(camera.position, cameraTarget);
+        const distance = offset.length();
+        const newDistance = distance + e.deltaY * 0.01;
+        
+        offset.normalize().multiplyScalar(Math.max(5, Math.min(100, newDistance)));
+        camera.position.copy(cameraTarget).add(offset);
+        camera.lookAt(cameraTarget);
+        render3D();
+    });
+    
+    // Make container focusable
+    container.setAttribute('tabindex', '0');
+    container.style.outline = 'none';
+    
+    // Keyboard controls
+    window.addEventListener('keydown', (e) => {
+        if (!is3DMode) return;
+        keys[e.key.toLowerCase()] = true;
+    });
+    
+    window.addEventListener('keyup', (e) => {
+        if (!is3DMode) return;
+        keys[e.key.toLowerCase()] = false;
+    });
+    
+    // Animation loop for keyboard movement
+    function animate() {
+        requestAnimationFrame(animate);
+        
+        if (!is3DMode) return;
+        
+        let moved = false;
+        const forward = new THREE.Vector3();
+        const right = new THREE.Vector3();
+        
+        camera.getWorldDirection(forward);
+        forward.y = 0;
+        forward.normalize();
+        
+        right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
+        
+        // WASD / Arrow keys movement
+        if (keys['w'] || keys['arrowup']) {
+            camera.position.addScaledVector(forward, moveSpeed);
+            cameraTarget.addScaledVector(forward, moveSpeed);
+            moved = true;
+        }
+        if (keys['s'] || keys['arrowdown']) {
+            camera.position.addScaledVector(forward, -moveSpeed);
+            cameraTarget.addScaledVector(forward, -moveSpeed);
+            moved = true;
+        }
+        if (keys['a'] || keys['arrowleft']) {
+            camera.position.addScaledVector(right, -moveSpeed);
+            cameraTarget.addScaledVector(right, -moveSpeed);
+            moved = true;
+        }
+        if (keys['d'] || keys['arrowright']) {
+            camera.position.addScaledVector(right, moveSpeed);
+            cameraTarget.addScaledVector(right, moveSpeed);
+            moved = true;
+        }
+        if (keys['q']) {
+            camera.position.y += moveSpeed;
+            cameraTarget.y += moveSpeed;
+            moved = true;
+        }
+        if (keys['e']) {
+            camera.position.y -= moveSpeed;
+            cameraTarget.y -= moveSpeed;
+            moved = true;
+        }
+        
+        if (moved) {
+            camera.lookAt(cameraTarget);
+            render3D();
+        }
+    }
+    
+    animate();
+    generate3DStaircase();
+}
+
+function generate3DStaircase() {
+    if (!scene) return;
+    
+    // Clear existing objects
+    const existingObjects = scene.children.filter(child => 
+        child.userData.isBlock || child.userData.isEllipse || child.userData.isSpoke
+    );
+    existingObjects.forEach(obj => scene.remove(obj));
+    
+    const ellipseData = getEllipseData();
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    
+    // Block material
+    const blockMaterial = new THREE.MeshLambertMaterial({ 
+        color: isDark ? 0xe6e0e9 : 0x1d1b20 
+    });
+    
+    // Generate staircase with full block structure at each level
+    const totalSteps = totalSpokes * rotations;
+    
+    for (let step = 0; step < totalSteps; step++) {
+        const spokeIndex = (startingSpoke + step) % totalSpokes;
+        const y = step * stepHeight * staircaseDirection * 0.5;
+        
+        // Generate all blocks for this level
+        generateLevelBlocks(ellipseData, spokeIndex, y, blockMaterial);
+        
+        // Draw ellipse outlines at this level
+        drawEllipseRing(ellipseData.radiusX * 0.5, ellipseData.radiusY * 0.5, y, isDark ? 0xf2b8b5 : 0xd32f2f, 0.3);
+        drawEllipseRing(ellipseData.innerRadiusX * 0.5, ellipseData.innerRadiusY * 0.5, y, isDark ? 0xa8c7fa : 0x1565c0, 0.3);
+    }
+    
+    render3D();
+}
+
+function generateLevelBlocks(ellipseData, spokeIndex, height, material) {
+    const ew = ellipseData.width;
+    const eh = ellipseData.height;
+    const cx = ellipseData.centerX;
+    const cy = ellipseData.centerY;
+    const rx = ellipseData.radiusX;
+    const ry = ellipseData.radiusY;
+    const inner_rx = ellipseData.innerRadiusX;
+    const inner_ry = ellipseData.innerRadiusY;
+    
+    // Create the 2D pattern for this level
+    const arr_outer = make2dArray(eh);
+    const arr_inner = make2dArray(eh);
+    const arr_spokes = make2dArray(eh);
+    const arr_hole = make2dArray(eh);
+    
+    for (let j = 0; j < eh; j++) {
+        for (let i = 0; i < ew; i++) {
+            arr_outer[j][i] = false;
+            arr_inner[j][i] = false;
+            arr_spokes[j][i] = false;
+            arr_hole[j][i] = false;
+        }
+    }
+    
+    // Outer ellipse ring (separate from spoke)
+    for (let j = 0; j < eh; j++) {
+        for (let i = 0; i < ew; i++) {
+            if (through(i, j, cx, cy, rx, ry)) {
+                arr_outer[j][i] = true;
+            }
+        }
+    }
+    
+    // Inner ellipse ring (separate from spoke)
+    for (let j = 0; j < eh; j++) {
+        for (let i = 0; i < ew; i++) {
+            if (through(i, j, cx, cy, inner_rx, inner_ry)) {
+                arr_inner[j][i] = true;
+            }
+        }
+    }
+    
+    // Add spoke for this level
+    const angle = (spokeIndex / totalSpokes) * 2 * Math.PI;
+    const endX = cx + rx * Math.cos(angle);
+    const endY = cy + ry * Math.sin(angle);
+    plotLine(cx, cy, endX, endY, arr_spokes);
+    
+    // Mark inner hole
+    for (let j = 0; j < eh; j++) {
+        for (let i = 0; i < ew; i++) {
+            if (inside(i, j, cx, cy, inner_rx, inner_ry)) {
+                arr_hole[j][i] = true;
+            }
+        }
+    }
+    
+    // Create transparent materials for rings
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const outerMaterial = new THREE.MeshLambertMaterial({ 
+        color: isDark ? 0xf2b8b5 : 0xd32f2f,
+        transparent: true,
+        opacity: 0.1
+    });
+    const innerMaterial = new THREE.MeshLambertMaterial({ 
+        color: isDark ? 0xa8c7fa : 0x1565c0,
+        transparent: true,
+        opacity: 0.3
+    });
+    
+    // Use merged geometries for performance
+    const blockSize = 0.5;
+    const scaleX = (ellipseData.radiusX * 2 * 0.5) / ew;
+    const scaleZ = (ellipseData.radiusY * 2 * 0.5) / eh;
+    
+    // Collect all positions first
+    const outerPositions = [];
+    const innerPositions = [];
+    const spokePositions = [];
+    
+    for (let j = 0; j < eh; j++) {
+        for (let i = 0; i < ew; i++) {
+            const x = (i - cx) * scaleX;
+            const z = (j - cy) * scaleZ;
+            
+            if (arr_outer[j] && arr_outer[j][i]) {
+                outerPositions.push({ x, y: height, z });
+            }
+            
+            if (arr_inner[j] && arr_inner[j][i]) {
+                innerPositions.push({ x, y: height, z });
+            }
+            
+            if (arr_spokes[j] && arr_spokes[j][i] && !(arr_hole[j] && arr_hole[j][i])) {
+                spokePositions.push({ x, y: height, z });
+            }
+        }
+    }
+    
+    // Create instanced meshes for better performance
+    const boxGeometry = new THREE.BoxGeometry(blockSize, blockSize * 0.5, blockSize);
+    
+    if (outerPositions.length > 0) {
+        const outerMesh = new THREE.InstancedMesh(boxGeometry, outerMaterial, outerPositions.length);
+        const matrix = new THREE.Matrix4();
+        outerPositions.forEach((pos, i) => {
+            matrix.setPosition(pos.x, pos.y, pos.z);
+            outerMesh.setMatrixAt(i, matrix);
+        });
+        outerMesh.userData.isBlock = true;
+        scene.add(outerMesh);
+    }
+    
+    if (innerPositions.length > 0) {
+        const innerMesh = new THREE.InstancedMesh(boxGeometry, innerMaterial, innerPositions.length);
+        const matrix = new THREE.Matrix4();
+        innerPositions.forEach((pos, i) => {
+            matrix.setPosition(pos.x, pos.y, pos.z);
+            innerMesh.setMatrixAt(i, matrix);
+        });
+        innerMesh.userData.isBlock = true;
+        scene.add(innerMesh);
+    }
+    
+    if (spokePositions.length > 0) {
+        const spokeMesh = new THREE.InstancedMesh(boxGeometry, material, spokePositions.length);
+        const matrix = new THREE.Matrix4();
+        spokePositions.forEach((pos, i) => {
+            matrix.setPosition(pos.x, pos.y, pos.z);
+            spokeMesh.setMatrixAt(i, matrix);
+        });
+        spokeMesh.castShadow = true;
+        spokeMesh.receiveShadow = true;
+        spokeMesh.userData.isBlock = true;
+        scene.add(spokeMesh);
+    }
+}
+
+function drawEllipseRing(radiusX, radiusY, height, color, opacity) {
+    const curve = new THREE.EllipseCurve(
+        0, 0,              // center x, y
+        radiusX, radiusY,  // x radius, y radius
+        0, 2 * Math.PI,    // start angle, end angle
+        false,             // clockwise
+        0                  // rotation
+    );
+    
+    const points = curve.getPoints(64);
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    
+    const material = new THREE.LineBasicMaterial({ 
+        color: color,
+        transparent: true,
+        opacity: opacity,
+        linewidth: 2
+    });
+    
+    const ellipse = new THREE.Line(geometry, material);
+    ellipse.rotation.x = Math.PI / 2; // Rotate to horizontal plane
+    ellipse.position.y = height;
+    ellipse.userData.isEllipse = true;
+    
+    scene.add(ellipse);
+}
+
+function drawSpokeLine(angle, ellipseData, isDark, height = 0) {
+    // Calculate end point on outer ellipse
+    const outerX = ellipseData.radiusX * Math.cos(angle) * 0.5;
+    const outerZ = ellipseData.radiusY * Math.sin(angle) * 0.5;
+    
+    // Calculate start point at inner ellipse
+    const innerX = ellipseData.innerRadiusX * Math.cos(angle) * 0.5;
+    const innerZ = ellipseData.innerRadiusY * Math.sin(angle) * 0.5;
+    
+    const points = [];
+    points.push(new THREE.Vector3(innerX, height, innerZ));
+    points.push(new THREE.Vector3(outerX, height, outerZ));
+    
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    const material = new THREE.LineBasicMaterial({ 
+        color: isDark ? 0x90caf9 : 0x1565c0,
+        transparent: true,
+        opacity: 0.6,
+        linewidth: 2
+    });
+    
+    const line = new THREE.Line(geometry, material);
+    line.userData.isSpoke = true;
+    
+    scene.add(line);
+}
+
+function render3D() {
+    if (renderer && scene && camera) {
+        renderer.render(scene, camera);
+    }
 }
 
 function canResize() {
     let d = document.getElementById("canvas-container")
     let elHeight = d.clientHeight;
     let elWidth = d.clientWidth;
+    
+    if (is3DMode) {
+        if (renderer) {
+            renderer.setSize(elWidth, elHeight);
+            camera.aspect = elWidth / elHeight;
+            camera.updateProjectionMatrix();
+            render3D();
+        }
+        return;
+    }
     
     let width = elWidth
     let height = elHeight
@@ -622,7 +1181,7 @@ function incX() {
         ellipseHeight = ellipseWidth;
         document.getElementById("ellh").value = ellipseHeight;
     }
-    canResize();
+    updateView();
 }
 function decX() {
     ellipseWidth--;
@@ -632,7 +1191,7 @@ function decX() {
         ellipseHeight = ellipseWidth;
         document.getElementById("ellh").value = ellipseHeight;
     }
-    canResize();
+    updateView();
 }
 function incY() {
     ellipseHeight++;
@@ -641,7 +1200,7 @@ function incY() {
         ellipseWidth = ellipseHeight;
         document.getElementById("ellw").value = ellipseWidth;
     }
-    canResize();
+    updateView();
 }
 function decY() {
     ellipseHeight--;
@@ -651,31 +1210,27 @@ function decY() {
         ellipseWidth = ellipseHeight;
         document.getElementById("ellw").value = ellipseWidth;
     }
-    canResize();
+    updateView();
 }
 function getX() {
     ellipseWidth = parseInt(document.getElementById("ellw").value) || 3;
     if (ellipseWidth<3) ellipseWidth = 3;
     document.getElementById("ellw").value = ellipseWidth;
-    console.log('getX called, width:', ellipseWidth, 'mirrored:', outerMirrored);
     if (outerMirrored) {
         ellipseHeight = ellipseWidth;
         document.getElementById("ellh").value = ellipseHeight;
-        console.log('Mirrored height to:', ellipseHeight);
     }
-    canResize();
+    updateView();
 }
 function getY() {
     ellipseHeight = parseInt(document.getElementById("ellh").value) || 3;
     if (ellipseHeight<3) ellipseHeight = 3;
     document.getElementById("ellh").value = ellipseHeight;
-    console.log('getY called, height:', ellipseHeight, 'mirrored:', outerMirrored);
     if (outerMirrored) {
         ellipseWidth = ellipseHeight;
         document.getElementById("ellw").value = ellipseWidth;
-        console.log('Mirrored width to:', ellipseWidth);
     }
-    canResize();
+    updateView();
 }
 
 function incInnerX() {
@@ -685,7 +1240,7 @@ function incInnerX() {
         innerEllipseHeight = innerEllipseWidth;
         document.getElementById("innerellh").value = innerEllipseHeight;
     }
-    canResize();
+    updateView();
 }
 function decInnerX() {
     innerEllipseWidth--;
@@ -695,7 +1250,7 @@ function decInnerX() {
         innerEllipseHeight = innerEllipseWidth;
         document.getElementById("innerellh").value = innerEllipseHeight;
     }
-    canResize();
+    updateView();
 }
 function incInnerY() {
     innerEllipseHeight++;
@@ -704,7 +1259,7 @@ function incInnerY() {
         innerEllipseWidth = innerEllipseHeight;
         document.getElementById("innerellw").value = innerEllipseWidth;
     }
-    canResize();
+    updateView();
 }
 function decInnerY() {
     innerEllipseHeight--;
@@ -714,7 +1269,7 @@ function decInnerY() {
         innerEllipseWidth = innerEllipseHeight;
         document.getElementById("innerellw").value = innerEllipseWidth;
     }
-    canResize();
+    updateView();
 }
 function getInnerX() {
     innerEllipseWidth = parseInt(document.getElementById("innerellw").value)
@@ -724,7 +1279,7 @@ function getInnerX() {
         innerEllipseHeight = innerEllipseWidth;
         document.getElementById("innerellh").value = innerEllipseHeight;
     }
-    canResize();
+    updateView();
 }
 function getInnerY() {
     innerEllipseHeight = parseInt(document.getElementById("innerellh").value)
@@ -734,49 +1289,37 @@ function getInnerY() {
         innerEllipseWidth = innerEllipseHeight;
         document.getElementById("innerellw").value = innerEllipseWidth;
     }
-    canResize();
+    updateView();
 }
 
 function toggleOuterMirror() {
     outerMirrored = !outerMirrored;
-    console.log('Outer mirrored:', outerMirrored);
     updateMirrorButton('outer-mirror', outerMirrored);
     
-    // If turning on mirroring, sync the values immediately
     if (outerMirrored) {
         ellipseHeight = ellipseWidth;
         document.getElementById("ellh").value = ellipseHeight;
-        canResize();
+        updateView();
     }
 }
 
 function toggleInnerMirror() {
     innerMirrored = !innerMirrored;
-    console.log('Inner mirrored:', innerMirrored);
     updateMirrorButton('inner-mirror', innerMirrored);
     
-    // If turning on mirroring, sync the values immediately
     if (innerMirrored) {
         innerEllipseHeight = innerEllipseWidth;
         document.getElementById("innerellh").value = innerEllipseHeight;
-        canResize();
+        updateView();
     }
 }
 
 function updateMirrorButton(buttonId, mirrored) {
     const button = document.getElementById(buttonId);
-    if (!button) {
-        console.warn(`Button with ID '${buttonId}' not found`);
-        return;
-    }
+    if (!button) return;
     
     const icon = button.querySelector('.material-icons');
-    if (!icon) {
-        console.warn(`Icon not found in button '${buttonId}'`);
-        return;
-    }
-    
-    console.log(`Updating ${buttonId} to mirrored: ${mirrored}`);
+    if (!icon) return;
     
     if (mirrored) {
         button.classList.add('mirrored');
@@ -793,14 +1336,14 @@ function incSpokes() {
     totalSpokes++;
     if (totalSpokes > maxSpokes) totalSpokes = maxSpokes;
     document.getElementById("spokes").value = totalSpokes;
-    canResize();
+    updateView();
 }
 
 function decSpokes() {
     totalSpokes--;
     if (totalSpokes < 4) totalSpokes = 4;
     document.getElementById("spokes").value = totalSpokes;
-    canResize();
+    updateView();
 }
 
 function getSpokes() {
@@ -808,17 +1351,142 @@ function getSpokes() {
     if (totalSpokes < 4) totalSpokes = 4;
     if (totalSpokes > maxSpokes) totalSpokes = maxSpokes;
     document.getElementById("spokes").value = totalSpokes;
-    canResize();
+    updateView();
 }
 
 function nextSpoke() {
     currentSpokeIndex++;
-    canResize();
+    updateView();
 }
 
 function prevSpoke() {
     currentSpokeIndex--;
-    canResize();
+    updateView();
+}
+
+// 3D Mode controls
+function toggle3DMode() {
+    is3DMode = !is3DMode;
+    
+    const canvas2D = document.getElementById('myCanvas');
+    const scene3D = document.getElementById('scene3d');
+    const toggleBtn = document.getElementById('view-toggle');
+    const staircaseControls = document.getElementById('staircase-controls');
+    
+    if (is3DMode) {
+        canvas2D.style.display = 'none';
+        scene3D.style.display = 'block';
+        toggleBtn.classList.add('active');
+        toggleBtn.innerHTML = '<span class="material-icons">view_in_ar</span> 3D Mode';
+        staircaseControls.style.display = 'block';
+        
+        if (!scene) {
+            init3D();
+        } else {
+            generate3DStaircase();
+            canResize();
+        }
+    } else {
+        canvas2D.style.display = 'block';
+        scene3D.style.display = 'none';
+        toggleBtn.classList.remove('active');
+        toggleBtn.innerHTML = '<span class="material-icons">grid_view</span> 2D Mode';
+        staircaseControls.style.display = 'none';
+        canResize();
+    }
+}
+
+function updateView() {
+    if (is3DMode) {
+        generate3DStaircase();
+    } else {
+        canResize();
+    }
+}
+
+function setDirection(direction) {
+    staircaseDirection = direction;
+    
+    // Update button states
+    document.querySelectorAll('.direction-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    if (direction === 1) {
+        document.getElementById('up-btn').classList.add('active');
+    } else {
+        document.getElementById('down-btn').classList.add('active');
+    }
+    
+    if (is3DMode) {
+        generate3DStaircase();
+    }
+}
+
+function incStepHeight() {
+    stepHeight += 0.5;
+    if (stepHeight > 5) stepHeight = 5;
+    document.getElementById("stepheight").value = stepHeight;
+    if (is3DMode) generate3DStaircase();
+}
+
+function decStepHeight() {
+    stepHeight -= 0.5;
+    if (stepHeight < 0.5) stepHeight = 0.5;
+    document.getElementById("stepheight").value = stepHeight;
+    if (is3DMode) generate3DStaircase();
+}
+
+function getStepHeight() {
+    stepHeight = parseFloat(document.getElementById("stepheight").value) || 1;
+    if (stepHeight < 0.5) stepHeight = 0.5;
+    if (stepHeight > 5) stepHeight = 5;
+    document.getElementById("stepheight").value = stepHeight;
+    if (is3DMode) generate3DStaircase();
+}
+
+function incRotations() {
+    rotations += 0.5;
+    if (rotations > 5) rotations = 5;
+    document.getElementById("rotations").value = rotations;
+    if (is3DMode) generate3DStaircase();
+}
+
+function decRotations() {
+    rotations -= 0.5;
+    if (rotations < 0.5) rotations = 0.5;
+    document.getElementById("rotations").value = rotations;
+    if (is3DMode) generate3DStaircase();
+}
+
+function getRotations() {
+    rotations = parseFloat(document.getElementById("rotations").value) || 2;
+    if (rotations < 0.5) rotations = 0.5;
+    if (rotations > 5) rotations = 5;
+    document.getElementById("rotations").value = rotations;
+    if (is3DMode) generate3DStaircase();
+}
+
+function incStartSpoke() {
+    startingSpoke++;
+    if (startingSpoke >= totalSpokes) startingSpoke = 0;
+    document.getElementById("startspoke").value = startingSpoke;
+    if (is3DMode) generate3DStaircase();
+}
+
+function decStartSpoke() {
+    startingSpoke--;
+    if (startingSpoke < 0) startingSpoke = totalSpokes - 1;
+    document.getElementById("startspoke").value = startingSpoke;
+    if (is3DMode) generate3DStaircase();
+}
+
+function getStartSpoke() {
+    startingSpoke = parseInt(document.getElementById("startspoke").value) || 0;
+    if (startingSpoke < 0) startingSpoke = 0;
+    if (startingSpoke >= totalSpokes) startingSpoke = totalSpokes - 1;
+    document.getElementById("startspoke").value = startingSpoke;
+    if (is3DMode) generate3DStaircase();
 }
 
 function initCanvas() {
@@ -827,20 +1495,21 @@ function initCanvas() {
     document.getElementById("innerellw").value = innerEllipseWidth;
     document.getElementById("innerellh").value = innerEllipseHeight;
     document.getElementById("spokes").value = totalSpokes;
+    document.getElementById("stepheight").value = stepHeight;
+    document.getElementById("rotations").value = rotations;
+    document.getElementById("startspoke").value = startingSpoke;
     
-    // Initialize mirror buttons after DOM is ready
     setTimeout(() => {
         updateMirrorButton('outer-mirror', outerMirrored);
         updateMirrorButton('inner-mirror', innerMirrored);
+        setDirection(1); // Default to upward
     }, 0);
     
-    // Initialize theme
     initTheme();
     canResize();
 }
 
 function initTheme() {
-    // Default to dark theme
     document.documentElement.setAttribute('data-theme', 'dark');
     updateThemeIcon('dark');
 }
@@ -852,8 +1521,14 @@ function toggleTheme() {
     document.documentElement.setAttribute('data-theme', newTheme);
     updateThemeIcon(newTheme);
     
-    // Redraw canvas with new colors
-    canResize();
+    // Update 3D scene background if in 3D mode
+    if (is3DMode && scene) {
+        const isDark = newTheme === 'dark';
+        scene.background = new THREE.Color(isDark ? 0x141218 : 0xfefbff);
+        generate3DStaircase(); // Regenerate with new colors
+    }
+    
+    updateView();
 }
 
 function updateThemeIcon(theme) {
@@ -889,6 +1564,8 @@ function relMouseCoords(currentElement, event){
 }
 
 function canvasMouseDown(event) {
+    if (is3DMode) return; // Disable 2D mouse controls in 3D mode
+    
     let can = document.getElementById("myCanvas");
     let coords = relMouseCoords(can, event)
     
@@ -916,6 +1593,8 @@ function canvasMouseDown(event) {
 }
 
 function canvasMouseMove(event) {
+    if (is3DMode) return;
+    
     if (makingSelection) { 
         let can = document.getElementById("myCanvas");
         let coords = relMouseCoords(can, event)
@@ -937,6 +1616,8 @@ function canvasMouseMove(event) {
 }
 
 function canvasMouseUp(event) {
+    if (is3DMode) return;
+    
     if (makingSelection) {
         let can = document.getElementById("myCanvas");
         let coords = relMouseCoords(can, event)
@@ -960,6 +1641,8 @@ function canvasMouseUp(event) {
 }
 
 function MouseWheelHandler(e) {
+    if (is3DMode) return;
+    
     let can = document.getElementById("myCanvas");
     let coords = relMouseCoords(can, e)
     
@@ -997,9 +1680,14 @@ function MouseWheelHandler(e) {
     
 <header class="top-app-bar">
     <h1>Ellipse & Staircase Generator</h1>
-    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
-        <span class="material-icons" id="theme-icon">light_mode</span>
-    </button>
+    <div class="header-controls">
+        <button class="view-toggle" id="view-toggle" onclick="toggle3DMode()" title="Toggle 3D Mode">
+            <span class="material-icons">grid_view</span> 2D Mode
+        </button>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+            <span class="material-icons" id="theme-icon">light_mode</span>
+        </button>
+    </div>
 </header>
 
 <div class="content">
@@ -1057,12 +1745,52 @@ function MouseWheelHandler(e) {
             <div class="spoke-controls">
                 <button class="btn btn-outlined" onclick="prevSpoke()">
                     <span class="material-icons">chevron_left</span>
-                    Prev
+                    Previous
                 </button>
                 <button class="btn btn-outlined" onclick="nextSpoke()">
                     Next
                     <span class="material-icons">chevron_right</span>
                 </button>
+            </div>
+        </div>
+
+        <!-- 3D Staircase Controls -->
+        <div class="surface" id="staircase-controls" style="display: none;">
+            <h2>3D Staircase</h2>
+            
+            <div class="control-group">
+                <span class="label">Direction</span>
+                <div class="direction-toggle">
+                    <button class="direction-btn active" id="up-btn" onclick="setDirection(1)">
+                        <span class="material-icons">arrow_upward</span>
+                        Up
+                    </button>
+                    <button class="direction-btn" id="down-btn" onclick="setDirection(-1)">
+                        <span class="material-icons">arrow_downward</span>
+                        Down
+                    </button>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <span class="label">Step Height</span>
+                <button class="btn btn-filled" onclick="decStepHeight()">−</button>
+                <input type="text" id="stepheight" class="input-field" onkeyup="getStepHeight()">
+                <button class="btn btn-filled" onclick="incStepHeight()">+</button>
+            </div>
+            
+            <div class="control-group">
+                <span class="label">Rotations</span>
+                <button class="btn btn-filled" onclick="decRotations()">−</button>
+                <input type="text" id="rotations" class="input-field" onkeyup="getRotations()">
+                <button class="btn btn-filled" onclick="incRotations()">+</button>
+            </div>
+            
+            <div class="control-group">
+                <span class="label">Start Spoke</span>
+                <button class="btn btn-filled" onclick="decStartSpoke()">−</button>
+                <input type="text" id="startspoke" class="input-field" onkeyup="getStartSpoke()">
+                <button class="btn btn-filled" onclick="incStartSpoke()">+</button>
             </div>
         </div>
 
@@ -1085,15 +1813,27 @@ function MouseWheelHandler(e) {
         <div class="instructions">
             <div class="instruction-row">
                 <span class="material-icons">mouse</span>
-                <span>Click + drag to select area</span>
+                <span>2D: Click + drag to select</span>
             </div>
             <div class="instruction-row">
                 <span class="material-icons">pan_tool</span>
-                <span>Right-click + drag to pan</span>
+                <span>2D: Right-click + drag to pan</span>
             </div>
             <div class="instruction-row">
                 <span class="material-icons">zoom_in</span>
                 <span>Mouse wheel to zoom</span>
+            </div>
+            <div class="instruction-row">
+                <span class="material-icons">view_in_ar</span>
+                <span>3D: Drag to rotate view</span>
+            </div>
+            <div class="instruction-row">
+                <span class="material-icons">open_with</span>
+                <span>3D: Shift+drag to pan camera</span>
+            </div>
+            <div class="instruction-row">
+                <span class="material-icons">keyboard</span>
+                <span>3D: WASD/Arrows to move, Q/E for up/down</span>
             </div>
         </div>
 
@@ -1120,6 +1860,7 @@ function MouseWheelHandler(e) {
 
     <div class="canvas-container" id="canvas-container">
         <canvas id="myCanvas"></canvas>
+        <div id="scene3d"></div>
     </div>
 </div>
 
