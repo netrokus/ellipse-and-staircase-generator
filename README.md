@@ -2,7 +2,7 @@
 
 **A modern, enhanced version of the Minecraft Circle Generator with Material Design UI**
 
-![Preview](https://netrokus.github.io/ellipse-and-staircase-generator/)
+![Preview](pending)
 
 ## 🌟 Features
 
@@ -17,7 +17,7 @@
 
 ## 🚀 Live Demo
 
-**[Try it now →](https://netrokus.github.io/index.html)**
+**[Try it now →](https://netrokus.github.io/ellipse-and-staircase-generator/)**
 
 ## 📱 Screenshots
 
