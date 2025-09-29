@@ -6,7 +6,7 @@
 
 ## 🌟 Features
 
-- **Interactive Ellipse Generation**: Create precise ellipses and circles for Minecraft builds
+- **Interactive Ellipse Generation**: Create precise ellipses and circles for survival game builds
 - **Staircase Mode**: Generate elliptical staircases with customizable spoke patterns
 - **Modern UI**: Clean Material Design interface with intuitive controls
 - **Dark/Light Themes**: Eye-friendly themes that save your preference
@@ -34,7 +34,7 @@
    - Left-click + drag to select areas
    - Right-click + drag to pan
    - Mouse wheel to zoom in/out
-5. **Build**: Use the generated pattern for your Minecraft construction!
+5. **Build**: Use the generated pattern for your survival game construction!
 
 ## 🛠️ Controls
 
@@ -105,6 +105,7 @@ Deploy to any static hosting service:
 
 ### Enhancements
 This version builds upon the original with:
+- Adds an option for an internal ellipse and spokes for stairs
 - Complete UI/UX redesign using Material Design principles
 - Dark/light theme system
 - Responsive layout for mobile devices
