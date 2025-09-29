@@ -78,8 +78,8 @@ Theme preference is automatically saved and restored.
 
 ### Option 2: Local Development
 ```bash
-git clone https://github.com/your-username/ellipse-generator.git
-cd ellipse-generator
+git clone https://github.com/netrokus/ellipse-and-staircase-generator.git
+cd ellipse-and-staircase-generator
 # Open index.html in your browser
 ```
 
