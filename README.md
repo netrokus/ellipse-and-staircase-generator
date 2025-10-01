@@ -1,169 +1,158 @@
-# Ellipse & Staircase Generator
+# Ellipse Ring Staircase Generator
 
-**A modern, enhanced version of the Minecraft Circle Generator with Material Design UI and 3D visualization**
+**A modern tool for designing and building spiral staircases in Minecraft, Enshrouded, and other voxel-based survival games**
 
-![Preview](https://github.com/netrokus/ellipse-and-staircase-generator/blob/main/screenshots/preview.png)
+## Features
 
-## 🌟 Features
-
-- **Interactive Ellipse Generation**: Create precise ellipses and circles for survival game builds
-- **3D Staircase Visualization**: View your spiral staircases in full 3D with interactive camera controls
-- **Fill Steps Mode**: Generate solid wedge-shaped steps instead of single-line spokes for gap-free staircases
-- **Progressive Building**: Watch your staircase build incrementally, step by step, in 3D
-- **Modern UI**: Clean Material Design interface with intuitive controls
-- **Dark/Light Themes**: Eye-friendly themes with seamless switching
+- **Intuitive Staircase Design**: Design spiral staircases by total height and rotation angle
+- **Dual View Modes**: Switch between 2D top-down view and 3D visualization
+- **Step-by-Step Building**: Navigate through individual steps to build precisely
+- **Flexible Configuration**: Create partial spirals (90°, 180°) or multi-rotation towers (720°+)
+- **Modern UI**: Clean Material Design interface with dark/light themes
 - **Mirror Controls**: Link width/height for perfect circles or separate for ellipses
+- **Interactive Camera**: Full 3D controls with mouse and keyboard navigation
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
-- **Smart Interface**: Controls automatically show/hide based on context
-- **Zoom & Pan**: Navigate in both 2D and 3D with mouse and keyboard controls
-- **Selection Tool**: Click and drag to highlight specific areas in 2D mode
 
-## 🚀 Live Demo
+## Live Demo
 
 **[Try it now →](https://netrokus.github.io/ellipse-and-staircase-generator/)**
 
-## 🎮 How to Use
+## How to Use
 
-### 2D Mode (Default)
-1. **Set Dimensions**: Adjust outer and inner ellipse width/height
-2. **Configure Spokes**: Set spoke count and navigate through individual spokes
-3. **Toggle Fill Steps**: Enable to create solid wedge-shaped steps instead of single lines
-4. **Choose Display**: Select fit mode (window, width, or height)
-5. **Interact**: 
-   - Left-click + drag to select areas
-   - Right-click + drag to pan
-   - Mouse wheel to zoom in/out
+### Basic Setup
 
-### 3D Mode
-1. **Click "2D Mode" button** in the header to switch to 3D visualization
-2. **Set Staircase Parameters**:
-   - Choose direction (upward or downward spiral)
-   - Adjust step height
-   - Set starting spoke position
-3. **View Modes**:
-   - **Show All Steps**: View the complete spiral staircase
-   - **Show Single Step**: Build the staircase incrementally using Previous/Next buttons
-4. **Navigate**:
-   - Drag to rotate the camera around the staircase
-   - Shift + drag to pan the camera
-   - Mouse wheel to zoom in/out
-   - **WASD** or **Arrow keys** to move the camera
-   - **Q/E** to move up/down
+1. **Set Outer Ellipse**: Define the outer boundary of your staircase ring
+2. **Set Inner Ellipse**: Define the inner hollow area (makes it a ring)
+3. **Configure Staircase**:
+   - **Total Height**: How many blocks tall (4-100 blocks)
+   - **Rotation**: How far around the circle (45°-720°)
+   - **Direction**: Spiral up or down
 
-## 🛠️ Controls
+### 2D Mode (Top-Down View)
 
-### Ellipse Controls
-- **Width/Height**: Set ellipse dimensions (3+ for outer, 1+ for inner)
-- **Mirror Button**: 🔗 Link width/height for perfect circles
-- **+/- Buttons**: Quick increment/decrement values
+Perfect for placing blocks precisely:
 
-### Spoke Controls
-- **Count**: Number of spokes (4-64)
-- **Fill Steps**: Toggle between single-line spokes and solid wedge-shaped steps
-- **Previous/Next**: Navigate through individual spokes (2D) or build incrementally (3D single step mode)
+- Shows current step from bird's-eye view
+- Use **Previous/Next** buttons to cycle through steps
+- Grid overlay shows exact block positions
+- Ellipse outlines help with alignment
 
-### 3D Staircase Controls (3D Mode Only)
-- **View Mode**: Toggle between showing all steps or building incrementally
-- **Direction**: Choose upward or downward spiral
-- **Step Height**: Control the vertical distance between each step (0.5-5 blocks)
-- **Start Spoke**: Set which spoke the spiral begins from (visible in "Show All Steps" mode)
+### 3D Mode (Visualization)
 
-### Display Options (2D Mode Only)
-- **Fit to Window**: Auto-scale to fit container
-- **Fit Width**: Scale to container width
-- **Fit Height**: Scale to container height
+See your complete staircase design:
 
-## 💻 Technical Details
+- **View All Steps**: See the entire spiral structure
+- **Single Step Mode**: Build incrementally, one step at a time
+- **Camera Controls**:
+  - Drag to rotate view
+  - Shift + drag to pan
+  - Mouse wheel to zoom
+  - WASD/Arrow keys to move
+  - Q/E to move up/down
 
-- **Pure HTML/CSS/JavaScript**: Single-file application, runs entirely in browser
-- **Canvas-based 2D Rendering**: Smooth, scalable 2D graphics
-- **Three.js 3D Rendering**: Hardware-accelerated 3D visualization with instanced rendering for performance
-- **CSS Custom Properties**: Theme system with seamless dark/light mode switching
-- **Responsive Grid System**: Adapts to all screen sizes with scrollable controls
-- **Smart UI**: Context-aware interface that shows/hides controls based on current mode
-- **Optimized Performance**: Instanced mesh rendering for thousands of blocks without lag
+## Understanding the Controls
 
-## 🎨 Themes
+### Staircase Parameters
 
-The application includes two carefully crafted themes:
+**Total Height**: The number of steps (blocks) from bottom to top
+- Example: Height of 20 creates a 20-block tall staircase
 
-- **Light Theme**: Clean, professional appearance for daytime use
-- **Dark Theme**: Easy on the eyes for extended building sessions (default)
+**Rotation**: How far the stairs wrap around the ring in degrees
+- 90° = quarter circle
+- 180° = half circle  
+- 360° = full circle
+- 720° = two complete rotations
 
-Theme toggles instantly and affects both 2D and 3D rendering.
+**How they work together**: 
+- Height=20, Rotation=360° → 20 steps evenly distributed around a full circle (18° each)
+- Height=15, Rotation=180° → 15 steps spanning half the circle (12° each)
+- Height=40, Rotation=720° → tall spiral tower with two full rotations (18° each)
 
-## 🗃️ Installation & Setup
+### Mirror Controls
 
-### Option 1: Direct Download
-1. Download `index.html` from this repository
+Click the sync icon to link width and height:
+- **Linked (active)**: Creates perfect circles
+- **Unlinked**: Creates ellipses with different dimensions
+
+## Technical Details
+
+- **Single-file application**: No installation needed
+- **Canvas 2D rendering**: Precise grid-based top-down view
+- **Three.js 3D rendering**: Hardware-accelerated visualization
+- **Instanced rendering**: Handles thousands of blocks smoothly
+- **No shadows**: Clean visualization without confusing artifacts
+- **Theme system**: Seamless dark/light mode switching
+
+## Browser Compatibility
+
+- Chrome 60+
+- Firefox 55+
+- Safari 12+
+- Edge 79+
+
+Note: 3D mode requires WebGL support (available in all modern browsers)
+
+## Installation
+
+### Option 1: Use Online
+Visit the [live demo](https://netrokus.github.io/ellipse-and-staircase-generator/)
+
+### Option 2: Download
+1. Download `index.html`
 2. Open in any modern web browser
-3. No installation required!
+3. No installation required
 
-### Option 2: Local Development
+### Option 3: Self-Host
 ```bash
 git clone https://github.com/netrokus/ellipse-and-staircase-generator.git
 cd ellipse-and-staircase-generator
 # Open index.html in your browser
 ```
 
-### Option 3: Host Your Own
-Deploy to any static hosting service:
-- **GitHub Pages**: Enable in repository settings
-- **Netlify**: Drag and drop the HTML file
-- **Vercel**: Connect your GitHub repository
+## Use Cases
 
-## 🔧 Browser Compatibility
+**Minecraft Towers**: Create spiral staircases for towers and lighthouses
+**Enshrouded Builds**: Design elegant circular stairs for multi-level structures  
+**Other Voxel Games**: Any game with block-based building
 
-- ✅ Chrome 60+
-- ✅ Firefox 55+
-- ✅ Safari 12+
-- ✅ Edge 79+
+**Tip**: Use 2D mode while building in-game to see exactly which blocks to place for each step
 
-**Note**: 3D mode requires WebGL support (available in all modern browsers).
+## Credits
 
-## 📜 Credits & Attribution
+### Inspired By
+- **Timothy Miller**, Binghamton University
+- [Original Minecraft Circle Generator](https://www.cs.binghamton.edu/~millerti/circlegen.html)
 
-### Original Work
-- **Creator**: Timothy Miller, Binghamton University
-- **Original Tool**: [Minecraft Circle Generator](https://www.cs.binghamton.edu/~millerti/circlegen.html)
-- **Institution**: Computer Science Department, Binghamton University
+### This Tool
+A reimagined approach to building spiral staircases in voxel games:
+- Height and rotation-based staircase design system
+- Dual 2D/3D view modes with seamless switching
+- Step-by-step building guide for precise construction
+- Material Design 3 UI with dark/light themes
+- Optimized 3D rendering with transparent inner ellipse visualization
+- Simplified controls focused on practical building use cases
+- Mobile-responsive interface
 
-### Enhancements
-This version builds upon the original with:
-- **3D visualization mode** with full camera controls and progressive building
-- **Fill Steps feature** for creating solid, gap-free staircases
-- Internal ellipse and customizable spoke system for spiral staircases
-- Complete UI/UX redesign using Material Design 3 principles
-- Dark/light theme system with instant switching
-- Responsive layout for mobile and desktop devices
-- Context-aware interface with smart control visibility
-- Modern CSS Grid and Flexbox layout
-- Hardware-accelerated 3D rendering with Three.js
-- Optimized performance with instanced rendering
-- Enhanced accessibility features
+## Contributing
 
-## 🤝 Contributing
+Contributions welcome! Submit issues and pull requests.
 
-Contributions are welcome! Please feel free to submit issues and enhancement requests.
-
-### Development Setup
+### Development
 1. Fork the repository
-2. Make your changes
-3. Test across different browsers (especially 3D mode)
-4. Submit a pull request
+2. Make changes
+3. Test in multiple browsers
+4. Submit pull request
 
-### Ideas for Future Enhancements
-- [ ] Export as image/SVG
-- [ ] Save/load patterns
-- [x] 3D visualization mode
-- [ ] Pattern library/presets
-- [ ] Block material selection
-- [ ] Measurement tools
-- [ ] VR mode support
-- [ ] Animation playback of staircase construction
+### Future Ideas
+- Export as schematic files
+- Save/load staircase designs
+- Pattern presets library
+- Material/block type selection
+- Share designs via URL
+- Animation of construction sequence
 
-## 📄 License
+## License
 
-This project is open source and available under the [MIT License](LICENSE).
+MIT License - Open source and free to use
 
-The original algorithm and concept are credited to Timothy Miller, Binghamton University.
+Original algorithm by Timothy Miller, Binghamton University

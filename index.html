@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-<title>Ellipse and Staircase Generator</title>
+<title>Ellipse Ring Staircase Generator</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
@@ -10,7 +10,6 @@
   box-sizing: border-box;
 }
 
-/* ==================== THEME VARIABLES ==================== */
 :root {
   --primary: #1565c0;
   --primary-hover: #1976d2;
@@ -65,7 +64,6 @@
   --shadow-strong: rgba(0, 0, 0, 0.4);
 }
 
-/* ==================== BASE LAYOUT ==================== */
 html, body {
   margin: 0;
   padding: 0;
@@ -81,12 +79,10 @@ body {
   flex-direction: column;
 }
 
-/* ==================== TOP BAR ==================== */
 .top-app-bar {
   background: var(--primary);
   color: var(--on-primary);
   padding: 16px 24px;
-  elevation: 2;
   box-shadow: 0px 2px 4px var(--shadow);
   display: flex;
   justify-content: space-between;
@@ -145,7 +141,6 @@ body {
   font-size: 24px;
 }
 
-/* ==================== CONTENT AREA ==================== */
 .content {
   flex: 1;
   display: flex;
@@ -155,7 +150,7 @@ body {
 }
 
 .controls-panel {
-  width: 320px;
+  width: 370px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -178,11 +173,6 @@ body {
   border-radius: 4px;
 }
 
-.controls-panel::-webkit-scrollbar-thumb:hover {
-  background: var(--outline-variant);
-}
-
-/* ==================== SURFACE CARDS ==================== */
 .surface {
   background: var(--surface);
   border-radius: 12px;
@@ -199,12 +189,11 @@ body {
   color: var(--primary);
 }
 
-/* ==================== CONTROLS ==================== */
 .control-group {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .control-group:last-child {
@@ -212,20 +201,21 @@ body {
 }
 
 .label {
-  font-size: 12px;
-  color: var(--on-surface-variant);
-  font-weight: 500;
-  min-width: 60px;
+  font-size: 14px;
+  color: var(--on-surface);
+  font-weight: 400;
+  min-width: 90px;
+  flex-shrink: 0;
 }
 
 .input-field {
-  width: 80px;
-  height: 40px;
+  width: 70px;
+  height: 48px;
   border: 1px solid var(--outline);
-  border-radius: 4px;
+  border-radius: 8px;
   padding: 0 12px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 16px;
   text-align: center;
   background: var(--surface);
   color: var(--on-surface);
@@ -236,20 +226,20 @@ body {
   outline: none;
   border-color: var(--primary);
   border-width: 2px;
+  padding: 0 11px;
 }
 
-/* ==================== BUTTONS ==================== */
 .btn {
   border: none;
-  border-radius: 20px;
-  padding: 8px 16px;
+  border-radius: 12px;
+  padding: 12px 20px;
   font-family: inherit;
   font-weight: 500;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 40px;
-  height: 40px;
+  min-width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -262,58 +252,39 @@ body {
 
 .btn-filled:hover {
   background: var(--primary-hover);
-  box-shadow: 0px 1px 3px var(--shadow-strong);
+  box-shadow: 0px 2px 4px var(--shadow-strong);
 }
 
-.btn-outlined {
-  background: transparent;
-  border: 1px solid var(--outline);
-  color: var(--primary);
-  gap: 4px;
-  padding: 10px 16px;
+.btn-filled:active {
+  box-shadow: 0px 1px 2px var(--shadow);
 }
 
-.btn-outlined:hover {
-  background: var(--primary-light);
-  border-color: var(--primary);
-}
-
-.btn-outlined:active {
-  background: var(--selection-bg);
-}
-
-.btn-mirror {
+.btn-icon {
   background: transparent;
   border: 1px solid var(--outline);
   color: var(--on-surface-variant);
-  min-width: 40px;
+  min-width: 48px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
   transition: all 0.2s ease;
+  border-radius: 12px;
 }
 
-.btn-mirror.mirrored {
-  background: var(--primary);
-  color: var(--on-primary);
+.btn-icon.active {
+  background: var(--primary-light);
+  color: var(--primary);
   border-color: var(--primary);
-  box-shadow: 0px 1px 3px var(--shadow);
 }
 
-.btn-mirror:hover {
-  background: var(--selection-bg);
+.btn-icon:hover {
+  background: var(--surface-variant);
+  border-color: var(--on-surface);
 }
 
-.btn-mirror.mirrored:hover {
-  background: var(--primary-hover);
-}
-
-/* ==================== SPECIALIZED CONTROLS ==================== */
-.spoke-controls {
-  display: flex;
-  gap: 8px;
-  width: 100%;
-}
-
-.spoke-controls .btn-outlined {
-  flex: 1;
+.btn-icon.active:hover {
+  background: var(--primary-light);
+  opacity: 0.9;
 }
 
 .direction-toggle {
@@ -347,48 +318,6 @@ body {
   box-shadow: 0px 1px 2px var(--shadow);
 }
 
-.direction-btn:hover:not(.active) {
-  background: var(--selection-bg);
-}
-
-.select {
-  position: relative;
-  width: 140px;
-}
-
-.select select {
-  width: 100%;
-  height: 40px;
-  border: 1px solid var(--outline);
-  border-radius: 4px;
-  padding: 0 32px 0 12px;
-  font-family: inherit;
-  font-size: 14px;
-  background: var(--surface);
-  color: var(--on-surface);
-  cursor: pointer;
-  appearance: none;
-  transition: border-color 0.2s ease, background-color 0.3s ease, color 0.3s ease;
-}
-
-.select::after {
-  content: 'expand_more';
-  font-family: 'Material Icons';
-  position: absolute;
-  right: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  color: var(--on-surface-variant);
-}
-
-.select select:focus {
-  outline: none;
-  border-color: var(--primary);
-  border-width: 2px;
-}
-
-/* ==================== CANVAS ==================== */
 .canvas-container {
   flex: 1;
   background: var(--canvas-surface);
@@ -400,17 +329,12 @@ body {
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-#myCanvas, #scene3d {
+#scene3d {
   display: block;
   width: 100%;
   height: 100%;
 }
 
-#scene3d {
-  display: none;
-}
-
-/* ==================== INSTRUCTIONS ==================== */
 .instructions {
   background: var(--instruction-bg);
   border: 1px solid var(--instruction-border);
@@ -440,27 +364,27 @@ body {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
 <script>
-// ==================== CONSTANTS ====================
 const CONSTANTS = {
   BLOCK_SIZE: 0.5,
   MIN_ELLIPSE_SIZE: 3,
   MIN_INNER_SIZE: 1,
-  MIN_SPOKES: 4,
-  MAX_SPOKES: 64,
+  MIN_HEIGHT: 4,
+  MAX_HEIGHT: 100,
+  MIN_ROTATION: 45,
+  MAX_ROTATION: 720,
   MIN_STEP_HEIGHT: 0.5,
   MAX_STEP_HEIGHT: 5,
-  MIN_ROTATIONS: 0.5,
-  MAX_ROTATIONS: 5,
+  MIN_STEPS: 4,
+  MAX_STEPS: 200,
   CAMERA_MOVE_SPEED: 0.2,
   OPACITY: {
-    OUTER_RING: 0.1,
-    INNER_RING: 0.3,
+    OUTER_RING: 0.02,
+    INNER_RING: 0.15,
     ELLIPSE_OUTLINE: 0.3,
     EDGE: 0.5
   }
 };
 
-// ==================== STATE MANAGEMENT ====================
 const state = {
   ellipse: {
     width: 40,
@@ -470,28 +394,22 @@ const state = {
     outerMirrored: true,
     innerMirrored: true
   },
+  staircase: {
+    currentStep: 0,
+    totalHeight: 20,
+    rotationDegrees: 360,
+    stepHeight: 1,
+    direction: 1,
+    showSingleStep: false
+  },
   canvas: {
     width: 100,
     height: 100,
     scale: [0, 0, 1, 1],
-    selection: [-1, -1, -1, -1],
-    makingSelection: false,
-    panning: false,
-    panData: [0, 0, 0, 0],
     fitMode: 0
   },
-  spokes: {
-    current: 0,
-    total: 32,
-    fillSteps: true
-  },
+  viewMode: '3d', // '2d' or '3d'
   view3D: {
-    enabled: false,
-    direction: 1,
-    stepHeight: 1,
-    startingSpoke: 0,
-    rotations: 1,
-    showSingleStep: false,
     scene: null,
     camera: null,
     renderer: null,
@@ -501,22 +419,13 @@ const state = {
   }
 };
 
-// ==================== UTILITY FUNCTIONS ====================
 const utils = {
   isDarkTheme() {
     return document.documentElement.getAttribute('data-theme') === 'dark';
   },
 
-  normalizeAngle(angle) {
-    return angle < 0 ? angle + 2 * Math.PI : angle;
-  },
-
   clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
-  },
-
-  make2dArray(length) {
-    return Array.from({ length }, () => []);
   },
 
   inside(x, y, cx, cy, rx, ry) {
@@ -528,80 +437,25 @@ const utils = {
 
   through(x, y, cx, cy, rx, ry) {
     let count = 0;
-    count += utils.inside(x - 0.5, y - 0.5, cx, cy, rx, ry);
-    count += utils.inside(x + 0.5, y - 0.5, cx, cy, rx, ry);
-    count += utils.inside(x - 0.5, y + 0.5, cx, cy, rx, ry);
-    count += utils.inside(x + 0.5, y + 0.5, cx, cy, rx, ry);
+    count += this.inside(x - 0.5, y - 0.5, cx, cy, rx, ry) ? 1 : 0;
+    count += this.inside(x + 0.5, y - 0.5, cx, cy, rx, ry) ? 1 : 0;
+    count += this.inside(x - 0.5, y + 0.5, cx, cy, rx, ry) ? 1 : 0;
+    count += this.inside(x + 0.5, y + 0.5, cx, cy, rx, ry) ? 1 : 0;
     return (count !== 0) && (count !== 4);
   },
 
-  between(x, a, b) {
-    return (x >= a && x <= b) || (x >= b && x <= a);
+  normalizeAngle(a) {
+    let angle = a % (2 * Math.PI);
+    return angle < 0 ? angle + 2 * Math.PI : angle;
   },
 
-  plotLine(x0, y0, x1, y1, grid) {
-    const dx = x1 - x0;
-    const dy = y1 - y0;
-    const steps = Math.max(Math.abs(dx), Math.abs(dy));
-    
-    if (steps === 0) {
-      const gridX = Math.round(x0);
-      const gridY = Math.round(y0);
-      if (grid[gridY]) grid[gridY][gridX] = true;
-      return;
-    }
-
-    const xIncrement = dx / steps;
-    const yIncrement = dy / steps;
-    let x = x0;
-    let y = y0;
-
-    for (let i = 0; i <= steps; i++) {
-      const gridX = Math.round(x);
-      const gridY = Math.round(y);
-      if (grid[gridY] && gridX >= 0 && gridX < grid[gridY].length && gridY >= 0) {
-        grid[gridY][gridX] = true;
-      }
-      x += xIncrement;
-      y += yIncrement;
-    }
-  },
-
-  fillWedgeBetweenSpokes(array, spokeIndex, cx, cy, inner_rx, inner_ry, rx, ry, totalSpokes) {
-    const ew = array[0].length;
-    const eh = array.length;
-    const currentAngle = (spokeIndex / totalSpokes) * 2 * Math.PI;
-    const nextAngle = ((spokeIndex + 1) / totalSpokes) * 2 * Math.PI;
-    
-    for (let j = 0; j < eh; j++) {
-      for (let i = 0; i < ew; i++) {
-        const dx = i - cx;
-        const dy = j - cy;
-        const blockAngle = Math.atan2(dy, dx);
-        
-        const normBlockAngle = utils.normalizeAngle(blockAngle);
-        const normCurrentAngle = utils.normalizeAngle(currentAngle);
-        const normNextAngle = utils.normalizeAngle(nextAngle);
-        
-        let inWedge = false;
-        if (normNextAngle > normCurrentAngle) {
-          inWedge = normBlockAngle >= normCurrentAngle && normBlockAngle <= normNextAngle;
-        } else {
-          inWedge = normBlockAngle >= normCurrentAngle || normBlockAngle <= normNextAngle;
-        }
-        
-        const inRing = !utils.inside(i, j, cx, cy, inner_rx, inner_ry) && 
-                       utils.inside(i, j, cx, cy, rx, ry);
-        
-        if (inWedge && inRing) {
-          array[j][i] = true;
-        }
-      }
-    }
+  getStepAngle() {
+    const { totalHeight, rotationDegrees } = state.staircase;
+    const stepAngleDegrees = rotationDegrees / totalHeight;
+    return (stepAngleDegrees * Math.PI) / 180;
   }
 };
 
-// ==================== 2D RENDERING ====================
 const render2D = {
   paintGrid(ctx) {
     ctx.beginPath();
@@ -629,7 +483,7 @@ const render2D = {
     ctx.stroke();
   },
 
-  drawBlock(ctx, x, y, isFilled = true) {
+  drawBlock(ctx, x, y) {
     const { width, height } = state.ellipse;
     const { width: canWidth, height: canHeight, scale } = state.canvas;
     
@@ -643,22 +497,17 @@ const render2D = {
     ctx.fillRect(x1 + scale[0], y1 + scale[1], w, h);
   },
 
-  getEllipseData() {
+  getStepData(stepIndex) {
     const { width: ew, height: eh, innerWidth: inner_ew, innerHeight: inner_eh } = state.ellipse;
-    const arr_final = utils.make2dArray(eh);
     
-    for (let j = 0; j < eh; j++) {
-      for (let i = 0; i < ew; i++) {
-        arr_final[j][i] = false;
-      }
-    }
-
     const cx = ew / 2.0 - 0.5;
     const cy = eh / 2.0 - 0.5;
     const rx = ew / 2.0;
     const ry = eh / 2.0;
     const inner_rx = inner_ew / 2.0;
     const inner_ry = inner_eh / 2.0;
+    
+    const arr_final = Array.from({ length: eh }, () => Array(ew).fill(false));
     
     // Draw outer and inner ellipse rings
     for (let j = 0; j < eh; j++) {
@@ -672,47 +521,33 @@ const render2D = {
       }
     }
     
-    // Add current spoke (only in 2D mode)
-    if (!state.view3D.enabled) {
-      let { current, total, fillSteps } = state.spokes;
-      if (current >= total) current = 0;
-      if (current < 0) current = total - 1;
-      state.spokes.current = current;
-
-      const arr_spokes = utils.make2dArray(eh);
-      const arr_hole = utils.make2dArray(eh);
-      
-      for (let j = 0; j < eh; j++) {
-        for (let i = 0; i < ew; i++) {
-          arr_spokes[j][i] = false;
-          arr_hole[j][i] = false;
+    // Add current step
+    const angleStep = utils.getStepAngle();
+    const startAngle = stepIndex * angleStep;
+    const endAngle = startAngle + angleStep;
+    
+    const normStart = utils.normalizeAngle(startAngle);
+    const normEnd = utils.normalizeAngle(endAngle);
+    
+    for (let j = 0; j < eh; j++) {
+      for (let i = 0; i < ew; i++) {
+        const dx = i - cx;
+        const dy = j - cy;
+        const angle = Math.atan2(dy, dx);
+        const normalizedAngle = angle < 0 ? angle + 2 * Math.PI : angle;
+        
+        let inAngleRange = false;
+        if (normStart <= normEnd) {
+          inAngleRange = normalizedAngle >= normStart && normalizedAngle <= normEnd;
+        } else {
+          inAngleRange = normalizedAngle >= normStart || normalizedAngle <= normEnd;
         }
-      }
-
-      if (fillSteps) {
-        utils.fillWedgeBetweenSpokes(arr_spokes, current, cx, cy, inner_rx, inner_ry, rx, ry, total);
-      } else {
-        const angle = (current / total) * 2 * Math.PI;
-        const endX = cx + rx * Math.cos(angle);
-        const endY = cy + ry * Math.sin(angle);
-        utils.plotLine(cx, cy, endX, endY, arr_spokes);
-      }
-
-      // Mark inner hole
-      for (let j = 0; j < eh; j++) {
-        for (let i = 0; i < ew; i++) {
-          if (utils.inside(i, j, cx, cy, inner_rx, inner_ry)) {
-            arr_hole[j][i] = true;
-          }
-        }
-      }
-
-      // Add spoke blocks
-      for (let j = 0; j < eh; j++) {
-        for (let i = 0; i < ew; i++) {
-          if (arr_spokes[j] && arr_spokes[j][i] && !(arr_hole[j] && arr_hole[j][i])) {
-            arr_final[j][i] = true;
-          }
+        
+        const inRing = !utils.inside(i, j, cx, cy, inner_rx, inner_ry) && 
+                       utils.inside(i, j, cx, cy, rx, ry);
+        
+        if (inAngleRange && inRing) {
+          arr_final[j][i] = true;
         }
       }
     }
@@ -731,35 +566,22 @@ const render2D = {
   },
 
   draw(ctx) {
-    const ellipseData = this.getEllipseData();
-    const { data: arr_final, width: ew, height: eh } = ellipseData;
+    const stepData = this.getStepData(state.staircase.currentStep);
+    const { data: arr_final, width: ew, height: eh } = stepData;
     const rootStyles = getComputedStyle(document.documentElement);
     
     const colors = {
       canvasBg: rootStyles.getPropertyValue('--canvas-bg').trim(),
-      selectionBg: rootStyles.getPropertyValue('--selection-bg').trim(),
       blockColor: rootStyles.getPropertyValue('--block-color').trim(),
       ellipseOuter: rootStyles.getPropertyValue('--ellipse-outer').trim(),
       ellipseInner: rootStyles.getPropertyValue('--ellipse-inner').trim()
     };
 
-    const { width: canWidth, height: canHeight, scale, selection } = state.canvas;
-    const { width, height } = state.ellipse;
+    const { width: canWidth, height: canHeight, scale } = state.canvas;
 
     // Clear canvas
     ctx.fillStyle = colors.canvasBg;
     ctx.fillRect(scale[0], scale[1], canWidth, canHeight);
-
-    // Draw selection
-    ctx.fillStyle = colors.selectionBg;
-    for (let j = 0; j < height; j++) {
-      for (let i = 0; i < width; i++) {
-        if (utils.between(i, selection[0], selection[2]) && 
-            utils.between(j, selection[1], selection[3])) {
-          this.drawBlock(ctx, i, j);
-        }
-      }
-    }
     
     // Draw blocks
     ctx.fillStyle = colors.blockColor;
@@ -779,10 +601,10 @@ const render2D = {
     ctx.strokeStyle = colors.ellipseOuter;
     ctx.lineWidth = 2;
     ctx.ellipse(
-      (ellipseData.centerX + 0.5) * scaleX + scale[0],
-      (ellipseData.centerY + 0.5) * scaleY + scale[1],
-      ellipseData.radiusX * scaleX,
-      ellipseData.radiusY * scaleY,
+      (stepData.centerX + 0.5) * scaleX + scale[0],
+      (stepData.centerY + 0.5) * scaleY + scale[1],
+      stepData.radiusX * scaleX,
+      stepData.radiusY * scaleY,
       0, 0, 2 * Math.PI
     );
     ctx.stroke();
@@ -791,10 +613,10 @@ const render2D = {
     ctx.strokeStyle = colors.ellipseInner;
     ctx.lineWidth = 2;
     ctx.ellipse(
-      (ellipseData.centerX + 0.5) * scaleX + scale[0],
-      (ellipseData.centerY + 0.5) * scaleY + scale[1],
-      ellipseData.innerRadiusX * scaleX,
-      ellipseData.innerRadiusY * scaleY,
+      (stepData.centerX + 0.5) * scaleX + scale[0],
+      (stepData.centerY + 0.5) * scaleY + scale[1],
+      stepData.innerRadiusX * scaleX,
+      stepData.innerRadiusY * scaleY,
       0, 0, 2 * Math.PI
     );
     ctx.stroke();
@@ -803,7 +625,6 @@ const render2D = {
   }
 };
 
-// ==================== 3D RENDERING ====================
 const render3D = {
   init() {
     try {
@@ -814,15 +635,14 @@ const render3D = {
       state.view3D.scene.background = new THREE.Color(utils.isDarkTheme() ? 0x141218 : 0xfefbff);
       
       state.view3D.camera = new THREE.PerspectiveCamera(75, rect.width / rect.height, 0.1, 1000);
-      state.view3D.camera.position.set(20, 15, 20);
+      state.view3D.camera.position.set(25, 20, 25);
       
       state.view3D.cameraTarget = new THREE.Vector3(0, 0, 0);
       state.view3D.camera.lookAt(state.view3D.cameraTarget);
       
       state.view3D.renderer = new THREE.WebGLRenderer({ antialias: true });
       state.view3D.renderer.setSize(rect.width, rect.height);
-      state.view3D.renderer.shadowMap.enabled = true;
-      state.view3D.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      state.view3D.renderer.shadowMap.enabled = false;
       
       container.appendChild(state.view3D.renderer.domElement);
       
@@ -832,20 +652,17 @@ const render3D = {
       this.generateStaircase();
     } catch (error) {
       console.error('Failed to initialize 3D mode:', error);
-      alert('3D visualization failed to initialize. Your browser may not support WebGL.');
-      toggleViewMode(); // Fall back to 2D
+      alert('3D visualization failed to initialize.');
     }
   },
 
   setupLighting() {
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+    const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
     state.view3D.scene.add(ambientLight);
     
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
     directionalLight.position.set(50, 50, 25);
-    directionalLight.castShadow = true;
-    directionalLight.shadow.mapSize.width = 2048;
-    directionalLight.shadow.mapSize.height = 2048;
+    directionalLight.castShadow = false;
     state.view3D.scene.add(directionalLight);
   },
 
@@ -869,7 +686,6 @@ const render3D = {
       const { camera, cameraTarget } = state.view3D;
       
       if (e.shiftKey) {
-        // Pan mode
         const right = new THREE.Vector3();
         const up = new THREE.Vector3(0, 1, 0);
         camera.getWorldDirection(right);
@@ -882,7 +698,6 @@ const render3D = {
         camera.position.add(panX).add(panY);
         cameraTarget.add(panX).add(panY);
       } else {
-        // Rotate mode
         const offset = new THREE.Vector3().subVectors(camera.position, cameraTarget);
         const spherical = new THREE.Spherical().setFromVector3(offset);
         
@@ -920,14 +735,11 @@ const render3D = {
     container.setAttribute('tabindex', '0');
     container.style.outline = 'none';
     
-    // Keyboard controls
     window.addEventListener('keydown', (e) => {
-      if (!state.view3D.enabled) return;
       state.view3D.keys[e.key.toLowerCase()] = true;
     });
     
     window.addEventListener('keyup', (e) => {
-      if (!state.view3D.enabled) return;
       state.view3D.keys[e.key.toLowerCase()] = false;
     });
   },
@@ -936,9 +748,6 @@ const render3D = {
     const animate = () => {
       requestAnimationFrame(animate);
       
-      if (!state.view3D.enabled) return;
-      
-      // Process keyboard movement
       const { camera, cameraTarget, keys } = state.view3D;
       let moved = false;
       const forward = new THREE.Vector3();
@@ -986,7 +795,6 @@ const render3D = {
         state.view3D.needsRender = true;
       }
       
-      // Render only when needed
       if (state.view3D.needsRender) {
         this.render();
         state.view3D.needsRender = false;
@@ -1006,126 +814,124 @@ const render3D = {
   generateStaircase() {
     if (!state.view3D.scene) return;
     
-    // Clear existing objects
     const existingObjects = state.view3D.scene.children.filter(child => 
       child.userData.isBlock || child.userData.isEllipse
     );
     existingObjects.forEach(obj => state.view3D.scene.remove(obj));
     
-    const ellipseData = render2D.getEllipseData();
+    const { width: ew, height: eh, innerWidth: inner_ew, innerHeight: inner_eh } = state.ellipse;
+    const { totalHeight, rotationDegrees, stepHeight, direction, currentStep, showSingleStep } = state.staircase;
+    
+    const cx = ew / 2.0 - 0.5;
+    const cy = eh / 2.0 - 0.5;
+    const rx = ew / 2.0;
+    const ry = eh / 2.0;
+    const inner_rx = inner_ew / 2.0;
+    const inner_ry = inner_eh / 2.0;
+    
     const isDark = utils.isDarkTheme();
     const blockMaterial = new THREE.MeshLambertMaterial({ 
       color: isDark ? 0xe6e0e9 : 0x1d1b20 
     });
     
-    const { showSingleStep, direction, stepHeight, startingSpoke } = state.view3D;
-    const { total: totalSpokes } = state.spokes;
-    const totalSteps = totalSpokes * state.view3D.rotations;
+    // Calculate step angle based on total height and rotation
+    const stepAngleDegrees = rotationDegrees / totalHeight;
+    const angleStep = (stepAngleDegrees * Math.PI) / 180;
     
-    const endStep = showSingleStep ? state.spokes.current : totalSteps - 1;
+    // Generate all steps or just current step
+    const stepStart = showSingleStep ? currentStep : 0;
+    const stepEnd = showSingleStep ? currentStep + 1 : totalHeight;
     
-    for (let step = 0; step <= endStep; step++) {
-      const spokeIndex = (startingSpoke + step) % totalSpokes;
-      const y = step * stepHeight * direction * 0.5;
+    for (let i = stepStart; i < stepEnd; i++) {
+      const stepIndex = i % totalHeight;
+      const startAngle = stepIndex * angleStep;
+      const endAngle = startAngle + angleStep;
+      const y = i * stepHeight * direction * 0.5;
       
-      this.generateLevelBlocks(ellipseData, spokeIndex, y, blockMaterial);
-      this.drawEllipseRing(ellipseData.radiusX * 0.5, ellipseData.radiusY * 0.5, y, 
+      this.generateStepBlocks(cx, cy, rx, ry, inner_rx, inner_ry, 
+                             ew, eh, startAngle, endAngle, y, blockMaterial);
+    }
+    
+    // Draw ellipse rings at bottom
+    this.drawEllipseRing(rx * 0.5, ry * 0.5, 0, 
+      isDark ? 0xf2b8b5 : 0xd32f2f, CONSTANTS.OPACITY.ELLIPSE_OUTLINE);
+    this.drawEllipseRing(inner_rx * 0.5, inner_ry * 0.5, 0, 
+      isDark ? 0xa8c7fa : 0x1565c0, CONSTANTS.OPACITY.ELLIPSE_OUTLINE);
+    
+    // Draw ellipse rings at top (only if showing all steps)
+    if (!showSingleStep) {
+      const topY = (stepEnd - stepStart) * stepHeight * direction * 0.5;
+      this.drawEllipseRing(rx * 0.5, ry * 0.5, topY, 
         isDark ? 0xf2b8b5 : 0xd32f2f, CONSTANTS.OPACITY.ELLIPSE_OUTLINE);
-      this.drawEllipseRing(ellipseData.innerRadiusX * 0.5, ellipseData.innerRadiusY * 0.5, y, 
+      this.drawEllipseRing(inner_rx * 0.5, inner_ry * 0.5, topY, 
         isDark ? 0xa8c7fa : 0x1565c0, CONSTANTS.OPACITY.ELLIPSE_OUTLINE);
     }
     
     state.view3D.needsRender = true;
   },
 
-  generateLevelBlocks(ellipseData, spokeIndex, height, material) {
-    const { width: ew, height: eh, centerX: cx, centerY: cy, 
-            radiusX: rx, radiusY: ry, innerRadiusX: inner_rx, innerRadiusY: inner_ry } = ellipseData;
+  generateStepBlocks(cx, cy, rx, ry, inner_rx, inner_ry, ew, eh, startAngle, endAngle, height, material) {
+    const arr_inner = Array.from({ length: eh }, () => Array(ew).fill(false));
+    const arr_step = Array.from({ length: eh }, () => Array(ew).fill(false));
     
-    const arr_outer = utils.make2dArray(eh);
-    const arr_inner = utils.make2dArray(eh);
-    const arr_spokes = utils.make2dArray(eh);
-    const arr_hole = utils.make2dArray(eh);
-    
-    // Initialize arrays
+    // Inner ellipse ring only (outer is hidden in 3D)
     for (let j = 0; j < eh; j++) {
       for (let i = 0; i < ew; i++) {
-        arr_outer[j][i] = false;
-        arr_inner[j][i] = false;
-        arr_spokes[j][i] = false;
-        arr_hole[j][i] = false;
-      }
-    }
-    
-    // Outer and inner ellipse rings
-    for (let j = 0; j < eh; j++) {
-      for (let i = 0; i < ew; i++) {
-        if (utils.through(i, j, cx, cy, rx, ry)) arr_outer[j][i] = true;
         if (utils.through(i, j, cx, cy, inner_rx, inner_ry)) arr_inner[j][i] = true;
       }
     }
     
-    // Generate spoke pattern
-    if (state.spokes.fillSteps) {
-      utils.fillWedgeBetweenSpokes(arr_spokes, spokeIndex, cx, cy, inner_rx, inner_ry, rx, ry, state.spokes.total);
-    } else {
-      const angle = (spokeIndex / state.spokes.total) * 2 * Math.PI;
-      const endX = cx + rx * Math.cos(angle);
-      const endY = cy + ry * Math.sin(angle);
-      utils.plotLine(cx, cy, endX, endY, arr_spokes);
-    }
+    // Generate step blocks in the ring
+    const normStart = utils.normalizeAngle(startAngle);
+    const normEnd = utils.normalizeAngle(endAngle);
     
-    // Mark inner hole
     for (let j = 0; j < eh; j++) {
       for (let i = 0; i < ew; i++) {
-        if (utils.inside(i, j, cx, cy, inner_rx, inner_ry)) {
-          arr_hole[j][i] = true;
+        const dx = i - cx;
+        const dy = j - cy;
+        const angle = Math.atan2(dy, dx);
+        const normalizedAngle = utils.normalizeAngle(angle);
+        
+        const inAngleRange = (normStart <= normEnd) 
+          ? (normalizedAngle >= normStart && normalizedAngle <= normEnd)
+          : (normalizedAngle >= normStart || normalizedAngle <= normEnd);
+        
+        const inRing = !utils.inside(i, j, cx, cy, inner_rx, inner_ry) && 
+                       utils.inside(i, j, cx, cy, rx, ry);
+        
+        if (inAngleRange && inRing) {
+          arr_step[j][i] = true;
         }
       }
     }
     
     const isDark = utils.isDarkTheme();
-    const materials = {
-      outer: new THREE.MeshLambertMaterial({ 
-        color: isDark ? 0xf2b8b5 : 0xd32f2f,
-        transparent: true,
-        opacity: CONSTANTS.OPACITY.OUTER_RING
-      }),
-      inner: new THREE.MeshLambertMaterial({ 
-        color: isDark ? 0xa8c7fa : 0x1565c0,
-        transparent: true,
-        opacity: CONSTANTS.OPACITY.INNER_RING
-      })
-    };
+    const innerMaterial = new THREE.MeshLambertMaterial({ 
+      color: isDark ? 0xa8c7fa : 0x1565c0,
+      transparent: true,
+      opacity: CONSTANTS.OPACITY.INNER_RING
+    });
     
-    const scaleX = (ellipseData.radiusX * 2 * 0.5) / ew;
-    const scaleZ = (ellipseData.radiusY * 2 * 0.5) / eh;
+    const scaleX = (rx * 2 * 0.5) / ew;
+    const scaleZ = (ry * 2 * 0.5) / eh;
     
-    // Collect positions
-    const positions = {
-      outer: [],
-      inner: [],
-      spoke: []
-    };
+    const positions = { inner: [], step: [] };
     
     for (let j = 0; j < eh; j++) {
       for (let i = 0; i < ew; i++) {
         const x = (i - cx) * scaleX;
         const z = (j - cy) * scaleZ;
         
-        if (arr_outer[j][i]) positions.outer.push({ x, y: height, z });
         if (arr_inner[j][i]) positions.inner.push({ x, y: height, z });
-        if (arr_spokes[j][i] && !arr_hole[j][i]) positions.spoke.push({ x, y: height, z });
+        if (arr_step[j][i]) positions.step.push({ x, y: height, z });
       }
     }
     
-    // Create instanced meshes
     const boxGeometry = new THREE.BoxGeometry(CONSTANTS.BLOCK_SIZE, CONSTANTS.BLOCK_SIZE, CONSTANTS.BLOCK_SIZE);
     const matrix = new THREE.Matrix4();
     
-    this.createInstancedMesh(boxGeometry, materials.outer, positions.outer, matrix, false);
-    this.createInstancedMesh(boxGeometry, materials.inner, positions.inner, matrix, false);
-    this.createInstancedMesh(boxGeometry, material, positions.spoke, matrix, true);
+    this.createInstancedMesh(boxGeometry, innerMaterial, positions.inner, matrix, true);
+    this.createInstancedMesh(boxGeometry, material, positions.step, matrix, true);
   },
 
   createInstancedMesh(geometry, material, positions, matrix, withEdges) {
@@ -1137,10 +943,11 @@ const render3D = {
       mesh.setMatrixAt(i, matrix);
     });
     
+    // Don't cast shadows to avoid ugly shadows on stairs below
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
+    
     if (withEdges) {
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      
       // Add edges
       const edgeGeometry = new THREE.EdgesGeometry(geometry);
       const edgeMaterial = new THREE.LineBasicMaterial({ 
@@ -1181,7 +988,6 @@ const render3D = {
   }
 };
 
-// ==================== CONTROL FUNCTIONS ====================
 const controls = {
   adjustValue(elementId, getter, setter, delta, min, max) {
     let value = getter() + delta;
@@ -1192,7 +998,7 @@ const controls = {
   },
 
   getValue(elementId, getter, setter, min, max) {
-    let value = parseInt(document.getElementById(elementId).value) || min;
+    let value = parseFloat(document.getElementById(elementId).value) || min;
     value = utils.clamp(value, min, max);
     setter(value);
     document.getElementById(elementId).value = value;
@@ -1200,7 +1006,7 @@ const controls = {
   },
 
   updateView() {
-    if (state.view3D.enabled) {
+    if (state.viewMode === '3d') {
       render3D.generateStaircase();
     } else {
       resizeCanvas();
@@ -1215,18 +1021,18 @@ const controls = {
     if (!icon) return;
     
     if (mirrored) {
-      button.classList.add('mirrored');
+      button.classList.add('active');
       icon.textContent = 'sync';
       button.title = 'Width/Height mirrored (click to separate)';
     } else {
-      button.classList.remove('mirrored');
+      button.classList.remove('active');
       icon.textContent = 'sync_disabled';
       button.title = 'Width/Height separate (click to mirror)';
     }
   }
 };
 
-// ==================== UI FUNCTIONS ====================
+// UI Functions
 function incX() {
   controls.adjustValue('ellw', 
     () => state.ellipse.width, 
@@ -1329,7 +1135,7 @@ function toggleOuterMirror() {
   if (state.ellipse.outerMirrored) {
     state.ellipse.height = state.ellipse.width;
     document.getElementById('ellh').value = state.ellipse.height;
-    controls.updateView();
+    render3D.generateStaircase();
   }
 }
 
@@ -1339,133 +1145,180 @@ function toggleInnerMirror() {
   if (state.ellipse.innerMirrored) {
     state.ellipse.innerHeight = state.ellipse.innerWidth;
     document.getElementById('innerellh').value = state.ellipse.innerHeight;
-    controls.updateView();
+    render3D.generateStaircase();
   }
 }
 
-function incSpokes() {
-  controls.adjustValue('spokes', 
-    () => state.spokes.total, 
-    (v) => state.spokes.total = v, 
-    1, CONSTANTS.MIN_SPOKES, CONSTANTS.MAX_SPOKES);
+function incStepAngle() {
+  controls.adjustValue('stepangle', 
+    () => state.staircase.stepAngleSize, 
+    (v) => state.staircase.stepAngleSize = v, 
+    1, CONSTANTS.MIN_STEP_SIZE, CONSTANTS.MAX_STEP_SIZE);
 }
 
-function decSpokes() {
-  controls.adjustValue('spokes', 
-    () => state.spokes.total, 
-    (v) => state.spokes.total = v, 
-    -1, CONSTANTS.MIN_SPOKES, CONSTANTS.MAX_SPOKES);
+function decStepAngle() {
+  controls.adjustValue('stepangle', 
+    () => state.staircase.stepAngleSize, 
+    (v) => state.staircase.stepAngleSize = v, 
+    -1, CONSTANTS.MIN_STEP_SIZE, CONSTANTS.MAX_STEP_SIZE);
 }
 
-function getSpokes() {
-  controls.getValue('spokes', 
-    () => state.spokes.total, 
-    (v) => state.spokes.total = v, 
-    CONSTANTS.MIN_SPOKES, CONSTANTS.MAX_SPOKES);
-}
-
-function nextSpoke() {
-  state.spokes.current++;
-  controls.updateView();
-}
-
-function prevSpoke() {
-  state.spokes.current--;
-  controls.updateView();
+function getStepAngle() {
+  controls.getValue('stepangle', 
+    () => state.staircase.stepAngleSize, 
+    (v) => state.staircase.stepAngleSize = v, 
+    CONSTANTS.MIN_STEP_SIZE, CONSTANTS.MAX_STEP_SIZE);
 }
 
 function incStepHeight() {
   controls.adjustValue('stepheight', 
-    () => state.view3D.stepHeight, 
-    (v) => state.view3D.stepHeight = v, 
+    () => state.staircase.stepHeight, 
+    (v) => state.staircase.stepHeight = v, 
     0.5, CONSTANTS.MIN_STEP_HEIGHT, CONSTANTS.MAX_STEP_HEIGHT);
 }
 
 function decStepHeight() {
   controls.adjustValue('stepheight', 
-    () => state.view3D.stepHeight, 
-    (v) => state.view3D.stepHeight = v, 
+    () => state.staircase.stepHeight, 
+    (v) => state.staircase.stepHeight = v, 
     -0.5, CONSTANTS.MIN_STEP_HEIGHT, CONSTANTS.MAX_STEP_HEIGHT);
 }
 
+function incHeight() {
+  controls.adjustValue('totalheight', 
+    () => state.staircase.totalHeight, 
+    (v) => state.staircase.totalHeight = v, 
+    1, CONSTANTS.MIN_HEIGHT, CONSTANTS.MAX_HEIGHT);
+}
+
+function decHeight() {
+  controls.adjustValue('totalheight', 
+    () => state.staircase.totalHeight, 
+    (v) => state.staircase.totalHeight = v, 
+    -1, CONSTANTS.MIN_HEIGHT, CONSTANTS.MAX_HEIGHT);
+}
+
+function getHeight() {
+  controls.getValue('totalheight', 
+    () => state.staircase.totalHeight, 
+    (v) => state.staircase.totalHeight = v, 
+    CONSTANTS.MIN_HEIGHT, CONSTANTS.MAX_HEIGHT);
+}
+
+function incRotation() {
+  controls.adjustValue('rotation', 
+    () => state.staircase.rotationDegrees, 
+    (v) => state.staircase.rotationDegrees = v, 
+    45, CONSTANTS.MIN_ROTATION, CONSTANTS.MAX_ROTATION);
+}
+
+function decRotation() {
+  controls.adjustValue('rotation', 
+    () => state.staircase.rotationDegrees, 
+    (v) => state.staircase.rotationDegrees = v, 
+    -45, CONSTANTS.MIN_ROTATION, CONSTANTS.MAX_ROTATION);
+}
+
+function getRotation() {
+  let value = parseInt(document.getElementById('rotation').value);
+  
+  // Handle invalid input
+  if (isNaN(value) || value < CONSTANTS.MIN_ROTATION) {
+    value = CONSTANTS.MIN_ROTATION;
+  } else if (value > CONSTANTS.MAX_ROTATION) {
+    value = CONSTANTS.MAX_ROTATION;
+  }
+  
+  // Round to nearest 45 for better UX
+  value = Math.round(value / 45) * 45;
+  
+  state.staircase.rotationDegrees = value;
+  document.getElementById('rotation').value = value;
+  controls.updateView();
+}
+
 function getStepHeight() {
-  let value = parseFloat(document.getElementById('stepheight').value) || 1;
-  value = utils.clamp(value, CONSTANTS.MIN_STEP_HEIGHT, CONSTANTS.MAX_STEP_HEIGHT);
-  state.view3D.stepHeight = value;
-  document.getElementById('stepheight').value = value;
-  if (state.view3D.enabled) render3D.generateStaircase();
-}
-
-function incStartSpoke() {
-  state.view3D.startingSpoke = (state.view3D.startingSpoke + 1) % state.spokes.total;
-  document.getElementById('startspoke').value = state.view3D.startingSpoke;
-  if (state.view3D.enabled) render3D.generateStaircase();
-}
-
-function decStartSpoke() {
-  state.view3D.startingSpoke--;
-  if (state.view3D.startingSpoke < 0) state.view3D.startingSpoke = state.spokes.total - 1;
-  document.getElementById('startspoke').value = state.view3D.startingSpoke;
-  if (state.view3D.enabled) render3D.generateStaircase();
-}
-
-function getStartSpoke() {
-  let value = parseInt(document.getElementById('startspoke').value) || 0;
-  value = utils.clamp(value, 0, state.spokes.total - 1);
-  state.view3D.startingSpoke = value;
-  document.getElementById('startspoke').value = value;
-  if (state.view3D.enabled) render3D.generateStaircase();
+  controls.getValue('stepheight', 
+    () => state.staircase.stepHeight, 
+    (v) => state.staircase.stepHeight = v, 
+    CONSTANTS.MIN_STEP_HEIGHT, CONSTANTS.MAX_STEP_HEIGHT);
 }
 
 function setDirection(direction) {
-  state.view3D.direction = direction;
+  state.staircase.direction = direction;
   document.querySelectorAll('.direction-btn').forEach(btn => btn.classList.remove('active'));
   document.getElementById(direction === 1 ? 'up-btn' : 'down-btn').classList.add('active');
-  if (state.view3D.enabled) render3D.generateStaircase();
+  render3D.generateStaircase();
+}
+
+function nextStep() {
+  const { totalHeight } = state.staircase;
+  state.staircase.currentStep = (state.staircase.currentStep + 1) % totalHeight;
+  
+  if (state.viewMode === '3d') {
+    render3D.generateStaircase();
+  } else {
+    resizeCanvas();
+  }
+}
+
+function prevStep() {
+  const { totalHeight } = state.staircase;
+  state.staircase.currentStep--;
+  if (state.staircase.currentStep < 0) state.staircase.currentStep = totalHeight - 1;
+  
+  if (state.viewMode === '3d') {
+    render3D.generateStaircase();
+  } else {
+    resizeCanvas();
+  }
 }
 
 function toggleSingleStep() {
-  state.view3D.showSingleStep = !state.view3D.showSingleStep;
+  state.staircase.showSingleStep = !state.staircase.showSingleStep;
   const button = document.getElementById('single-step-toggle');
-  const spokeNavButtons = document.getElementById('spoke-nav-buttons');
-  const startSpokeControl = document.getElementById('start-spoke-control');
+  const stepNav = document.getElementById('step-nav-buttons');
   
-  if (state.view3D.showSingleStep) {
-    button.classList.add('mirrored');
+  if (state.staircase.showSingleStep) {
+    button.classList.add('active');
     button.querySelector('.material-icons').textContent = 'filter_1';
     button.title = 'Showing single step (click to show all)';
-    spokeNavButtons.style.display = 'flex';
-    startSpokeControl.style.display = 'none';
+    stepNav.style.display = 'flex';
   } else {
-    button.classList.remove('mirrored');
+    button.classList.remove('active');
     button.querySelector('.material-icons').textContent = 'view_carousel';
     button.title = 'Showing all steps (click to show single)';
-    spokeNavButtons.style.display = 'none';
-    startSpokeControl.style.display = 'flex';
+    stepNav.style.display = 'none';
   }
-  if (state.view3D.enabled) render3D.generateStaircase();
+  
+  if (state.viewMode === '3d') {
+    render3D.generateStaircase();
+  } else {
+    resizeCanvas();
+  }
 }
 
 function toggleViewMode() {
-  state.view3D.enabled = !state.view3D.enabled;
+  state.viewMode = state.viewMode === '2d' ? '3d' : '2d';
   
   const canvas2D = document.getElementById('myCanvas');
   const scene3D = document.getElementById('scene3d');
   const toggleBtn = document.getElementById('view-toggle');
-  const staircaseControls = document.getElementById('staircase-controls');
-  const displaySection = document.getElementById('display-section');
-  const spokeNavButtons = document.getElementById('spoke-nav-buttons');
+  const viewModeControl = document.getElementById('view-mode-control');
+  const stepNav = document.getElementById('step-nav-buttons');
   
-  if (state.view3D.enabled) {
+  if (state.viewMode === '3d') {
     canvas2D.style.display = 'none';
     scene3D.style.display = 'block';
     toggleBtn.classList.add('active');
     toggleBtn.innerHTML = '<span class="material-icons">view_in_ar</span> 3D Mode';
-    staircaseControls.style.display = 'block';
-    displaySection.style.display = 'none';
+    viewModeControl.style.display = 'flex';
     
-    if (!state.view3D.showSingleStep) {
-      spokeNavButtons.style.display = 'none';
+    // Restore previous single-step state
+    if (state.staircase.showSingleStep) {
+      stepNav.style.display = 'flex';
+    } else {
+      stepNav.style.display = 'none';
     }
     
     if (!state.view3D.scene) {
@@ -1482,56 +1335,23 @@ function toggleViewMode() {
       }
     }
   } else {
+    // 2D mode - always show single step
     canvas2D.style.display = 'block';
     scene3D.style.display = 'none';
     toggleBtn.classList.remove('active');
     toggleBtn.innerHTML = '<span class="material-icons">grid_view</span> 2D Mode';
-    staircaseControls.style.display = 'none';
-    displaySection.style.display = 'block';
-    spokeNavButtons.style.display = 'flex';
+    viewModeControl.style.display = 'none';
+    stepNav.style.display = 'flex';
     resizeCanvas();
   }
 }
 
-function modeChange() {
-  const e = document.getElementById('fitmode');
-  state.canvas.fitMode = parseInt(e.options[e.selectedIndex].value);
-  resizeCanvas();
-}
-
-function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-  
-  document.documentElement.setAttribute('data-theme', newTheme);
-  const themeIcon = document.getElementById('theme-icon');
-  if (themeIcon) {
-    themeIcon.textContent = newTheme === 'light' ? 'dark_mode' : 'light_mode';
-  }
-  
-  if (state.view3D.enabled && state.view3D.scene) {
-    state.view3D.scene.background = new THREE.Color(newTheme === 'dark' ? 0x141218 : 0xfefbff);
-    render3D.generateStaircase();
-  }
-  
-  controls.updateView();
-}
-
-// ==================== CANVAS MANAGEMENT ====================
 function resizeCanvas() {
+  if (state.viewMode === '3d') return;
+  
   const d = document.getElementById('canvas-container');
   const elHeight = d.clientHeight;
   const elWidth = d.clientWidth;
-  
-  if (state.view3D.enabled) {
-    if (state.view3D.renderer) {
-      state.view3D.renderer.setSize(elWidth, elHeight);
-      state.view3D.camera.aspect = elWidth / elHeight;
-      state.view3D.camera.updateProjectionMatrix();
-      state.view3D.needsRender = true;
-    }
-    return;
-  }
   
   let width = elWidth;
   let height = elHeight;
@@ -1572,178 +1392,58 @@ function resizeCanvas() {
   render2D.draw(ctx);
 }
 
-// Debounce resize events
-let resizeTimeout;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimeout);
-  resizeTimeout = setTimeout(resizeCanvas, 100);
-});
-
-// ==================== MOUSE INTERACTION ====================
-function relMouseCoords(currentElement, event) {
-  let totalOffsetX = 0;
-  let totalOffsetY = 0;
-  let element = currentElement;
-
-  do {
-    totalOffsetX += element.offsetLeft - element.scrollLeft;
-    totalOffsetY += element.offsetTop - element.scrollTop;
-  } while (element = element.offsetParent);
-
-  return {
-    x: event.pageX - totalOffsetX,
-    y: event.pageY - totalOffsetY
-  };
-}
-
-function canvasMouseDown(event) {
-  if (state.view3D.enabled) return;
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+  const newTheme = currentTheme === 'light' ? 'dark' : 'light';
   
-  const can = document.getElementById('myCanvas');
-  const coords = relMouseCoords(can, event);
-  const { scale, width, height } = state.canvas;
-  const { width: ellipseWidth, height: ellipseHeight } = state.ellipse;
-  
-  if (event.buttons !== null ? (event.buttons & 1) : (event.which === 1)) {
-    state.canvas.selection[0] = state.canvas.selection[2] = parseInt((coords.x - scale[0]) * ellipseWidth / width);
-    state.canvas.selection[1] = state.canvas.selection[3] = parseInt((coords.y - scale[1]) * ellipseHeight / height);
-    state.canvas.makingSelection = true;
-    resizeCanvas();
-  } else if (event.buttons !== null ? (event.buttons & 2) : (event.which === 3)) {
-    if (scale[2] > 1 || state.canvas.fitMode !== 0) {
-      state.canvas.panData = [scale[0], scale[1], coords.x, coords.y];
-      state.canvas.panning = true;
-    } else {
-      state.canvas.scale = [0, 0, 1, 1];
-    }
-    resizeCanvas();
+  document.documentElement.setAttribute('data-theme', newTheme);
+  const themeIcon = document.getElementById('theme-icon');
+  if (themeIcon) {
+    themeIcon.textContent = newTheme === 'light' ? 'dark_mode' : 'light_mode';
   }
   
-  return false;
+  if (state.view3D.scene) {
+    state.view3D.scene.background = new THREE.Color(newTheme === 'dark' ? 0x141218 : 0xfefbff);
+    render3D.generateStaircase();
+  }
 }
 
-function canvasMouseMove(event) {
-  if (state.view3D.enabled) return;
-  
-  const can = document.getElementById('myCanvas');
-  const coords = relMouseCoords(can, event);
-  const { scale, width, height } = state.canvas;
-  const { width: ellipseWidth, height: ellipseHeight } = state.ellipse;
-  
-  if (state.canvas.makingSelection) {
-    state.canvas.selection[2] = parseInt((coords.x - scale[0]) * ellipseWidth / width);
-    state.canvas.selection[3] = parseInt((coords.y - scale[1]) * ellipseHeight / height);
-    resizeCanvas();
-  } else if (state.canvas.panning) {
-    state.canvas.scale[0] = state.canvas.panData[0] + (coords.x - state.canvas.panData[2]);
-    state.canvas.scale[1] = state.canvas.panData[1] + (coords.y - state.canvas.panData[3]);
-    resizeCanvas();
-  }
-  
-  return false;
-}
-
-function canvasMouseUp(event) {
-  if (state.view3D.enabled) return;
-  
-  if (state.canvas.makingSelection) {
-    const can = document.getElementById('myCanvas');
-    const coords = relMouseCoords(can, event);
-    const { scale, width, height } = state.canvas;
-    const { width: ellipseWidth, height: ellipseHeight } = state.ellipse;
-    
-    state.canvas.selection[2] = parseInt((coords.x - scale[0]) * ellipseWidth / width);
-    state.canvas.selection[3] = parseInt((coords.y - scale[1]) * ellipseHeight / height);
-    state.canvas.makingSelection = false;
-    resizeCanvas();
-  } else if (state.canvas.panning) {
-    const can = document.getElementById('myCanvas');
-    const coords = relMouseCoords(can, event);
-    
-    state.canvas.scale[0] = state.canvas.panData[0] + (coords.x - state.canvas.panData[2]);
-    state.canvas.scale[1] = state.canvas.panData[1] + (coords.y - state.canvas.panData[3]);
-    state.canvas.panning = false;
-    resizeCanvas();
-  }
-  
-  return false;
-}
-
-function mouseWheelHandler(e) {
-  if (state.view3D.enabled) return;
-  
-  const can = document.getElementById('myCanvas');
-  const coords = relMouseCoords(can, e);
-  const delta = e.wheelDelta ? e.wheelDelta : -e.detail;
-  const { scale } = state.canvas;
-  
-  if (delta < 0) {
-    scale[2] *= 0.5;
-    scale[3] *= 0.5;
-    scale[0] = coords.x - (coords.x - scale[0]) * 0.5;
-    scale[1] = coords.y - (coords.y - scale[1]) * 0.5;
-  } else {
-    scale[2] *= 2;
-    scale[3] *= 2;
-    scale[0] = coords.x - (coords.x - scale[0]) * 2;
-    scale[1] = coords.y - (coords.y - scale[1]) * 2;
-  }
-  
-  if (scale[2] <= 1) {
-    scale[2] = 1;
-    scale[3] = 1;
-    scale[0] = 0;
-    scale[1] = 0;
-  }
-  
-  resizeCanvas();
-  return false;
-}
-
-// ==================== INITIALIZATION ====================
-function initCanvas() {
+window.addEventListener('load', () => {
   document.getElementById('ellw').value = state.ellipse.width;
   document.getElementById('ellh').value = state.ellipse.height;
   document.getElementById('innerellw').value = state.ellipse.innerWidth;
   document.getElementById('innerellh').value = state.ellipse.innerHeight;
-  document.getElementById('spokes').value = state.spokes.total;
-  document.getElementById('stepheight').value = state.view3D.stepHeight;
-  document.getElementById('startspoke').value = state.view3D.startingSpoke;
+  document.getElementById('totalheight').value = state.staircase.totalHeight;
+  document.getElementById('rotation').value = state.staircase.rotationDegrees;
   
   setTimeout(() => {
     controls.updateMirrorButton('outer-mirror', state.ellipse.outerMirrored);
     controls.updateMirrorButton('inner-mirror', state.ellipse.innerMirrored);
     setDirection(1);
-    
-    const singleStepBtn = document.getElementById('single-step-toggle');
-    if (singleStepBtn) {
-      singleStepBtn.classList.remove('mirrored');
-      singleStepBtn.querySelector('.material-icons').textContent = 'view_carousel';
-    }
   }, 0);
   
-  // Initialize theme
   document.documentElement.setAttribute('data-theme', 'dark');
   const themeIcon = document.getElementById('theme-icon');
   if (themeIcon) {
     themeIcon.textContent = 'light_mode';
   }
   
-  resizeCanvas();
-}
+  // Start in 3D mode
+  state.viewMode = '3d';
+  render3D.init();
+});
 
-// Setup event listeners
-window.addEventListener('load', () => {
-  const can = document.getElementById('myCanvas');
-  can.addEventListener('mousedown', canvasMouseDown);
-  can.addEventListener('mousemove', canvasMouseMove);
-  can.addEventListener('mouseup', canvasMouseUp);
-  can.addEventListener('mouseleave', canvasMouseUp);
-  can.addEventListener('mousewheel', mouseWheelHandler, false);
-  can.addEventListener('DOMMouseScroll', mouseWheelHandler, false);
-  can.addEventListener('contextmenu', (e) => e.preventDefault(), false);
-  
-  initCanvas();
+window.addEventListener('resize', () => {
+  if (state.viewMode === '3d' && state.view3D.renderer) {
+    const container = document.getElementById('scene3d');
+    const rect = container.getBoundingClientRect();
+    state.view3D.renderer.setSize(rect.width, rect.height);
+    state.view3D.camera.aspect = rect.width / rect.height;
+    state.view3D.camera.updateProjectionMatrix();
+    state.view3D.needsRender = true;
+  } else if (state.viewMode === '2d') {
+    resizeCanvas();
+  }
 });
 </script>
 
@@ -1752,10 +1452,10 @@ window.addEventListener('load', () => {
 <body>
     
 <header class="top-app-bar">
-    <h1>Ellipse & Staircase Generator</h1>
+    <h1>Ellipse Ring Staircase</h1>
     <div class="header-controls">
         <button class="view-toggle" id="view-toggle" onclick="toggleViewMode()" title="Toggle 3D Mode">
-            <span class="material-icons">grid_view</span> 2D Mode
+            <span class="material-icons">view_in_ar</span> 3D Mode
         </button>
         <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
             <span class="material-icons" id="theme-icon">light_mode</span>
@@ -1773,7 +1473,7 @@ window.addEventListener('load', () => {
                 <button class="btn btn-filled" onclick="decX()">−</button>
                 <input type="text" id="ellw" class="input-field" onkeyup="getX()">
                 <button class="btn btn-filled" onclick="incX()">+</button>
-                <button class="btn btn-mirror" id="outer-mirror" onclick="toggleOuterMirror()">
+                <button class="btn-icon" id="outer-mirror" onclick="toggleOuterMirror()">
                     <span class="material-icons">sync</span>
                 </button>
             </div>
@@ -1792,7 +1492,7 @@ window.addEventListener('load', () => {
                 <button class="btn btn-filled" onclick="decInnerX()">−</button>
                 <input type="text" id="innerellw" class="input-field" onkeyup="getInnerX()">
                 <button class="btn btn-filled" onclick="incInnerX()">+</button>
-                <button class="btn btn-mirror" id="inner-mirror" onclick="toggleInnerMirror()">
+                <button class="btn-icon" id="inner-mirror" onclick="toggleInnerMirror()">
                     <span class="material-icons">sync</span>
                 </button>
             </div>
@@ -1805,33 +1505,37 @@ window.addEventListener('load', () => {
         </div>
 
         <div class="surface">
-            <h2>Spokes</h2>
-            <div class="control-group">
-                <span class="label">Count</span>
-                <button class="btn btn-filled" onclick="decSpokes()">−</button>
-                <input type="text" id="spokes" class="input-field" onkeyup="getSpokes()">
-                <button class="btn btn-filled" onclick="incSpokes()">+</button>
-            </div>
-            <div class="spoke-controls" id="spoke-nav-buttons">
-                <button class="btn btn-outlined" onclick="prevSpoke()">
-                    <span class="material-icons">chevron_left</span>
-                    Previous
-                </button>
-                <button class="btn btn-outlined" onclick="nextSpoke()">
-                    Next
-                    <span class="material-icons">chevron_right</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="surface" id="staircase-controls" style="display: none;">
-            <h2>3D Staircase</h2>
+            <h2>Staircase</h2>
             
-            <div class="control-group">
+            <div class="control-group" id="view-mode-control">
                 <span class="label">View Mode</span>
-                <button class="btn btn-mirror" id="single-step-toggle" onclick="toggleSingleStep()">
+                <button class="btn-icon" id="single-step-toggle" onclick="toggleSingleStep()" title="Show all steps">
                     <span class="material-icons">view_carousel</span>
                 </button>
+            </div>
+            
+            <div class="control-group" id="step-nav-buttons" style="display: none; flex-direction: column; gap: 8px; width: 100%;">
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-filled" onclick="prevStep()" style="flex: 1;">
+                        <span class="material-icons">chevron_left</span>
+                    </button>
+                    <button class="btn btn-filled" onclick="nextStep()" style="flex: 1;">
+                        <span class="material-icons">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+            <div class="control-group">
+                <span class="label">Total Height</span>
+                <button class="btn btn-filled" onclick="decHeight()">−</button>
+                <input type="text" id="totalheight" class="input-field" onblur="getHeight()">
+                <button class="btn btn-filled" onclick="incHeight()">+</button>
+            </div>
+            
+            <div class="control-group">
+                <span class="label">Rotation (°)</span>
+                <button class="btn btn-filled" onclick="decRotation()">−</button>
+                <input type="text" id="rotation" class="input-field" onblur="getRotation()">
+                <button class="btn btn-filled" onclick="incRotation()">+</button>
             </div>
             
             <div class="control-group">
@@ -1847,67 +1551,31 @@ window.addEventListener('load', () => {
                     </button>
                 </div>
             </div>
-            
-            <div class="control-group">
-                <span class="label">Step Height</span>
-                <button class="btn btn-filled" onclick="decStepHeight()">−</button>
-                <input type="text" id="stepheight" class="input-field" onkeyup="getStepHeight()">
-                <button class="btn btn-filled" onclick="incStepHeight()">+</button>
-            </div>
-            
-            <div class="control-group" id="start-spoke-control">
-                <span class="label">Start Spoke</span>
-                <button class="btn btn-filled" onclick="decStartSpoke()">−</button>
-                <input type="text" id="startspoke" class="input-field" onkeyup="getStartSpoke()">
-                <button class="btn btn-filled" onclick="incStartSpoke()">+</button>
-            </div>
-        </div>
-
-        <div class="surface" id="display-section">
-            <h2>Display</h2>
-            <div class="control-group">
-                <span class="label">Fit Mode</span>
-                <div class="select">
-                    <select id="fitmode" onchange="modeChange()">
-                        <option value="0" selected>Fit to window</option>
-                        <option value="1">Fit width</option>
-                        <option value="2">Fit height</option>
-                    </select>
-                </div>
-            </div>
         </div>
 
         <div class="instructions">
             <div class="instruction-row">
-                <span class="material-icons">mouse</span>
-                <span>2D: Click + drag to select</span>
+                <span class="material-icons">view_in_ar</span>
+                <span>Drag to rotate view</span>
             </div>
             <div class="instruction-row">
-                <span class="material-icons">pan_tool</span>
-                <span>2D: Right-click + drag to pan</span>
+                <span class="material-icons">open_with</span>
+                <span>Shift+drag to pan camera</span>
             </div>
             <div class="instruction-row">
                 <span class="material-icons">zoom_in</span>
                 <span>Mouse wheel to zoom</span>
             </div>
             <div class="instruction-row">
-                <span class="material-icons">view_in_ar</span>
-                <span>3D: Drag to rotate view</span>
-            </div>
-            <div class="instruction-row">
-                <span class="material-icons">open_with</span>
-                <span>3D: Shift+drag to pan camera</span>
-            </div>
-            <div class="instruction-row">
                 <span class="material-icons">keyboard</span>
-                <span>3D: WASD/Arrows to move, Q/E for up/down</span>
+                <span>WASD/Arrows to move, Q/E for up/down</span>
             </div>
         </div>
 
         <div class="surface" style="font-size: 12px; padding: 12px;">
             <div style="color: var(--on-surface-variant); line-height: 1.4;">
                 <div style="margin-bottom: 8px;">
-                    <strong>Based on the original work by:</strong><br>
+                    <strong>Inspired by work from:</strong><br>
                     Timothy Miller, Binghamton University
                 </div>
                 <div>
@@ -1916,7 +1584,7 @@ window.addEventListener('load', () => {
                        style="color: var(--primary); text-decoration: none;"
                        onmouseover="this.style.textDecoration='underline'"
                        onmouseout="this.style.textDecoration='none'">
-                        View Original Version →
+                        View Original →
                     </a>
                 </div>
             </div>
@@ -1925,7 +1593,7 @@ window.addEventListener('load', () => {
     </div>
 
     <div class="canvas-container" id="canvas-container">
-        <canvas id="myCanvas"></canvas>
+        <canvas id="myCanvas" style="display: none;"></canvas>
         <div id="scene3d"></div>
     </div>
 </div>
