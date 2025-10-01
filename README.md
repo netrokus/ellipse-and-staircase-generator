@@ -17,6 +17,10 @@
 
 **[Try it now →](https://netrokus.github.io/ellipse-and-staircase-generator/)**
 
+## Preview
+
+**![Preview](https://github.com/netrokus/ellipse-and-staircase-generator/blob/main/screenshots/preview.png)**
+
 ## How to Use
 
 ### Basic Setup
