@@ -20,7 +20,7 @@
 
 ## Preview
 
-![Preview](https://github.com/netrokus/ellipse-and-staircase-generator/blob/main/screenshots/preview.png)
+![Preview](https://github.com/netrokus/ellipse-and-staircase-generator/blob/main/preview.png)
 
 ## How to Use
 
