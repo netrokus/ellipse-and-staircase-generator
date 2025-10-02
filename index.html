@@ -23,10 +23,8 @@
   --outline-variant: #cac4d0;
   --background: #fefbff;
   --on-background: #1d1b20;
-  --selection-bg: #e3f2fd;
   --grid-color: #e7e0ec;
   --canvas-bg: #fefbff;
-  --canvas-surface: #ffffff;
   --ellipse-outer: #d32f2f;
   --ellipse-inner: #1565c0;
   --block-color: #1d1b20;
@@ -50,10 +48,8 @@
   --outline-variant: #49454f;
   --background: #141218;
   --on-background: #e6e0e9;
-  --selection-bg: #2b2930;
   --grid-color: #49454f;
   --canvas-bg: #141218;
-  --canvas-surface: #1d1b20;
   --ellipse-outer: #f2b8b5;
   --ellipse-inner: #a8c7fa;
   --block-color: #e6e0e9;
@@ -87,6 +83,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: all 0.3s ease;
 }
 
 .top-app-bar h1 {
@@ -147,6 +144,7 @@ body {
   gap: 16px;
   padding: 16px;
   overflow: hidden;
+  transition: all 0.3s ease;
 }
 
 .controls-panel {
@@ -157,6 +155,7 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 8px;
+  transition: all 0.3s ease;
 }
 
 .controls-panel::-webkit-scrollbar {
@@ -243,6 +242,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
 }
 
 .btn-filled {
@@ -320,7 +320,7 @@ body {
 
 .canvas-container {
   flex: 1;
-  background: var(--canvas-surface);
+  background: var(--surface);
   border-radius: 12px;
   box-shadow: 0px 1px 3px var(--shadow);
   border: 1px solid var(--outline-variant);
@@ -359,6 +359,60 @@ body {
 .instruction-row .material-icons {
   font-size: 16px;
 }
+
+/* Builder Mode Styles */
+.builder-overlay {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 2px solid var(--primary);
+  border-radius: 16px;
+  padding: 20px 40px;
+  box-shadow: 0 4px 12px var(--shadow-strong);
+  text-align: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.builder-overlay h2 {
+  margin: 0;
+  font-size: 32px;
+  color: var(--primary);
+}
+
+.builder-overlay p {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: var(--on-surface-variant);
+}
+
+.builder-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+.builder-info {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: var(--surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px var(--shadow);
+  font-size: 13px;
+  color: var(--on-surface);
+  line-height: 1.6;
+  z-index: 10;
+  pointer-events: none;
+}
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -372,13 +426,12 @@ const CONSTANTS = {
   MAX_HEIGHT: 100,
   MIN_ROTATION: 45,
   MAX_ROTATION: 720,
+  MIN_STARTING_ANGLE: 0,
+  MAX_STARTING_ANGLE: 315,
   MIN_STEP_HEIGHT: 0.5,
   MAX_STEP_HEIGHT: 5,
-  MIN_STEPS: 4,
-  MAX_STEPS: 200,
   CAMERA_MOVE_SPEED: 0.2,
   OPACITY: {
-    OUTER_RING: 0.02,
     INNER_RING: 0.15,
     ELLIPSE_OUTLINE: 0.3,
     EDGE: 0.5
@@ -400,15 +453,16 @@ const state = {
     rotationDegrees: 360,
     stepHeight: 1,
     direction: 1,
-    showSingleStep: false
+    showSingleStep: false,
+    startingAngle: 0
   },
   canvas: {
     width: 100,
     height: 100,
-    scale: [0, 0, 1, 1],
-    fitMode: 0
+    scale: [0, 0, 1, 1]
   },
-  viewMode: '3d', // '2d' or '3d'
+  viewMode: '3d',
+  builderMode: false,
   view3D: {
     scene: null,
     camera: null,
@@ -447,12 +501,6 @@ const utils = {
   normalizeAngle(a) {
     let angle = a % (2 * Math.PI);
     return angle < 0 ? angle + 2 * Math.PI : angle;
-  },
-
-  getStepAngle() {
-    const { totalHeight, rotationDegrees } = state.staircase;
-    const stepAngleDegrees = rotationDegrees / totalHeight;
-    return (stepAngleDegrees * Math.PI) / 180;
   }
 };
 
@@ -499,6 +547,7 @@ const render2D = {
 
   getStepData(stepIndex) {
     const { width: ew, height: eh, innerWidth: inner_ew, innerHeight: inner_eh } = state.ellipse;
+    const { startingAngle, totalHeight, rotationDegrees } = state.staircase;
     
     const cx = ew / 2.0 - 0.5;
     const cy = eh / 2.0 - 0.5;
@@ -521,9 +570,11 @@ const render2D = {
       }
     }
     
-    // Add current step
-    const angleStep = utils.getStepAngle();
-    const startAngle = stepIndex * angleStep;
+    // Add current step with starting angle offset
+    const stepAngleDegrees = rotationDegrees / totalHeight;
+    const angleStep = (stepAngleDegrees * Math.PI) / 180;
+    const startingAngleRadians = (startingAngle * Math.PI) / 180;
+    const startAngle = stepIndex * angleStep + startingAngleRadians;
     const endAngle = startAngle + angleStep;
     
     const normStart = utils.normalizeAngle(startAngle);
@@ -662,7 +713,6 @@ const render3D = {
     
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
     directionalLight.position.set(50, 50, 25);
-    directionalLight.castShadow = false;
     state.view3D.scene.add(directionalLight);
   },
 
@@ -675,7 +725,6 @@ const render3D = {
       mouseDown = true;
       mouseX = e.clientX;
       mouseY = e.clientY;
-      container.focus();
     });
     
     container.addEventListener('mousemove', (e) => {
@@ -731,9 +780,6 @@ const render3D = {
       camera.lookAt(cameraTarget);
       state.view3D.needsRender = true;
     });
-    
-    container.setAttribute('tabindex', '0');
-    container.style.outline = 'none';
     
     window.addEventListener('keydown', (e) => {
       state.view3D.keys[e.key.toLowerCase()] = true;
@@ -820,7 +866,7 @@ const render3D = {
     existingObjects.forEach(obj => state.view3D.scene.remove(obj));
     
     const { width: ew, height: eh, innerWidth: inner_ew, innerHeight: inner_eh } = state.ellipse;
-    const { totalHeight, rotationDegrees, stepHeight, direction, currentStep, showSingleStep } = state.staircase;
+    const { totalHeight, rotationDegrees, stepHeight, direction, currentStep, showSingleStep, startingAngle } = state.staircase;
     
     const cx = ew / 2.0 - 0.5;
     const cy = eh / 2.0 - 0.5;
@@ -834,17 +880,16 @@ const render3D = {
       color: isDark ? 0xe6e0e9 : 0x1d1b20 
     });
     
-    // Calculate step angle based on total height and rotation
     const stepAngleDegrees = rotationDegrees / totalHeight;
     const angleStep = (stepAngleDegrees * Math.PI) / 180;
+    const startingAngleRadians = (startingAngle * Math.PI) / 180;
     
-    // Generate all steps or just current step
     const stepStart = showSingleStep ? currentStep : 0;
     const stepEnd = showSingleStep ? currentStep + 1 : totalHeight;
     
     for (let i = stepStart; i < stepEnd; i++) {
       const stepIndex = i % totalHeight;
-      const startAngle = stepIndex * angleStep;
+      const startAngle = stepIndex * angleStep + startingAngleRadians;
       const endAngle = startAngle + angleStep;
       const y = i * stepHeight * direction * 0.5;
       
@@ -852,13 +897,11 @@ const render3D = {
                              ew, eh, startAngle, endAngle, y, blockMaterial);
     }
     
-    // Draw ellipse rings at bottom
     this.drawEllipseRing(rx * 0.5, ry * 0.5, 0, 
       isDark ? 0xf2b8b5 : 0xd32f2f, CONSTANTS.OPACITY.ELLIPSE_OUTLINE);
     this.drawEllipseRing(inner_rx * 0.5, inner_ry * 0.5, 0, 
       isDark ? 0xa8c7fa : 0x1565c0, CONSTANTS.OPACITY.ELLIPSE_OUTLINE);
     
-    // Draw ellipse rings at top (only if showing all steps)
     if (!showSingleStep) {
       const topY = (stepEnd - stepStart) * stepHeight * direction * 0.5;
       this.drawEllipseRing(rx * 0.5, ry * 0.5, topY, 
@@ -874,14 +917,12 @@ const render3D = {
     const arr_inner = Array.from({ length: eh }, () => Array(ew).fill(false));
     const arr_step = Array.from({ length: eh }, () => Array(ew).fill(false));
     
-    // Inner ellipse ring only (outer is hidden in 3D)
     for (let j = 0; j < eh; j++) {
       for (let i = 0; i < ew; i++) {
         if (utils.through(i, j, cx, cy, inner_rx, inner_ry)) arr_inner[j][i] = true;
       }
     }
     
-    // Generate step blocks in the ring
     const normStart = utils.normalizeAngle(startAngle);
     const normEnd = utils.normalizeAngle(endAngle);
     
@@ -943,12 +984,10 @@ const render3D = {
       mesh.setMatrixAt(i, matrix);
     });
     
-    // Don't cast shadows to avoid ugly shadows on stairs below
     mesh.castShadow = false;
     mesh.receiveShadow = false;
     
     if (withEdges) {
-      // Add edges
       const edgeGeometry = new THREE.EdgesGeometry(geometry);
       const edgeMaterial = new THREE.LineBasicMaterial({ 
         color: utils.isDarkTheme() ? 0x49454f : 0xcac4d0,
@@ -975,8 +1014,7 @@ const render3D = {
     const material = new THREE.LineBasicMaterial({ 
       color: color,
       transparent: true,
-      opacity: opacity,
-      linewidth: 2
+      opacity: opacity
     });
     
     const ellipse = new THREE.Line(geometry, material);
@@ -1023,16 +1061,16 @@ const controls = {
     if (mirrored) {
       button.classList.add('active');
       icon.textContent = 'sync';
-      button.title = 'Width/Height mirrored (click to separate)';
+      button.title = 'Mirrored (click to separate)';
     } else {
       button.classList.remove('active');
       icon.textContent = 'sync_disabled';
-      button.title = 'Width/Height separate (click to mirror)';
+      button.title = 'Separate (click to mirror)';
     }
   }
 };
 
-// UI Functions
+// UI Functions - Outer Ellipse
 function incX() {
   controls.adjustValue('ellw', 
     () => state.ellipse.width, 
@@ -1081,6 +1119,7 @@ function getY() {
   if (state.ellipse.outerMirrored) document.getElementById('ellw').value = state.ellipse.height;
 }
 
+// Inner Ellipse
 function incInnerX() {
   controls.adjustValue('innerellw', 
     () => state.ellipse.innerWidth, 
@@ -1135,7 +1174,7 @@ function toggleOuterMirror() {
   if (state.ellipse.outerMirrored) {
     state.ellipse.height = state.ellipse.width;
     document.getElementById('ellh').value = state.ellipse.height;
-    render3D.generateStaircase();
+    controls.updateView();
   }
 }
 
@@ -1145,45 +1184,11 @@ function toggleInnerMirror() {
   if (state.ellipse.innerMirrored) {
     state.ellipse.innerHeight = state.ellipse.innerWidth;
     document.getElementById('innerellh').value = state.ellipse.innerHeight;
-    render3D.generateStaircase();
+    controls.updateView();
   }
 }
 
-function incStepAngle() {
-  controls.adjustValue('stepangle', 
-    () => state.staircase.stepAngleSize, 
-    (v) => state.staircase.stepAngleSize = v, 
-    1, CONSTANTS.MIN_STEP_SIZE, CONSTANTS.MAX_STEP_SIZE);
-}
-
-function decStepAngle() {
-  controls.adjustValue('stepangle', 
-    () => state.staircase.stepAngleSize, 
-    (v) => state.staircase.stepAngleSize = v, 
-    -1, CONSTANTS.MIN_STEP_SIZE, CONSTANTS.MAX_STEP_SIZE);
-}
-
-function getStepAngle() {
-  controls.getValue('stepangle', 
-    () => state.staircase.stepAngleSize, 
-    (v) => state.staircase.stepAngleSize = v, 
-    CONSTANTS.MIN_STEP_SIZE, CONSTANTS.MAX_STEP_SIZE);
-}
-
-function incStepHeight() {
-  controls.adjustValue('stepheight', 
-    () => state.staircase.stepHeight, 
-    (v) => state.staircase.stepHeight = v, 
-    0.5, CONSTANTS.MIN_STEP_HEIGHT, CONSTANTS.MAX_STEP_HEIGHT);
-}
-
-function decStepHeight() {
-  controls.adjustValue('stepheight', 
-    () => state.staircase.stepHeight, 
-    (v) => state.staircase.stepHeight = v, 
-    -0.5, CONSTANTS.MIN_STEP_HEIGHT, CONSTANTS.MAX_STEP_HEIGHT);
-}
-
+// Staircase Controls
 function incHeight() {
   controls.adjustValue('totalheight', 
     () => state.staircase.totalHeight, 
@@ -1222,14 +1227,12 @@ function decRotation() {
 function getRotation() {
   let value = parseInt(document.getElementById('rotation').value);
   
-  // Handle invalid input
   if (isNaN(value) || value < CONSTANTS.MIN_ROTATION) {
     value = CONSTANTS.MIN_ROTATION;
   } else if (value > CONSTANTS.MAX_ROTATION) {
     value = CONSTANTS.MAX_ROTATION;
   }
   
-  // Round to nearest 45 for better UX
   value = Math.round(value / 45) * 45;
   
   state.staircase.rotationDegrees = value;
@@ -1237,11 +1240,34 @@ function getRotation() {
   controls.updateView();
 }
 
-function getStepHeight() {
-  controls.getValue('stepheight', 
-    () => state.staircase.stepHeight, 
-    (v) => state.staircase.stepHeight = v, 
-    CONSTANTS.MIN_STEP_HEIGHT, CONSTANTS.MAX_STEP_HEIGHT);
+function incStartingAngle() {
+  controls.adjustValue('startangle', 
+    () => state.staircase.startingAngle, 
+    (v) => state.staircase.startingAngle = v, 
+    45, CONSTANTS.MIN_STARTING_ANGLE, CONSTANTS.MAX_STARTING_ANGLE);
+}
+
+function decStartingAngle() {
+  controls.adjustValue('startangle', 
+    () => state.staircase.startingAngle, 
+    (v) => state.staircase.startingAngle = v, 
+    -45, CONSTANTS.MIN_STARTING_ANGLE, CONSTANTS.MAX_STARTING_ANGLE);
+}
+
+function getStartingAngle() {
+  let value = parseInt(document.getElementById('startangle').value);
+  
+  if (isNaN(value) || value < CONSTANTS.MIN_STARTING_ANGLE) {
+    value = CONSTANTS.MIN_STARTING_ANGLE;
+  } else if (value > CONSTANTS.MAX_STARTING_ANGLE) {
+    value = CONSTANTS.MAX_STARTING_ANGLE;
+  }
+  
+  value = Math.round(value / 45) * 45;
+  
+  state.staircase.startingAngle = value;
+  document.getElementById('startangle').value = value;
+  controls.updateView();
 }
 
 function setDirection(direction) {
@@ -1251,27 +1277,20 @@ function setDirection(direction) {
   render3D.generateStaircase();
 }
 
+// Step Navigation
 function nextStep() {
   const { totalHeight } = state.staircase;
   state.staircase.currentStep = (state.staircase.currentStep + 1) % totalHeight;
-  
-  if (state.viewMode === '3d') {
-    render3D.generateStaircase();
-  } else {
-    resizeCanvas();
-  }
+  controls.updateView();
+  if (state.builderMode) updateBuilderDisplay();
 }
 
 function prevStep() {
   const { totalHeight } = state.staircase;
   state.staircase.currentStep--;
   if (state.staircase.currentStep < 0) state.staircase.currentStep = totalHeight - 1;
-  
-  if (state.viewMode === '3d') {
-    render3D.generateStaircase();
-  } else {
-    resizeCanvas();
-  }
+  controls.updateView();
+  if (state.builderMode) updateBuilderDisplay();
 }
 
 function toggleSingleStep() {
@@ -1282,22 +1301,59 @@ function toggleSingleStep() {
   if (state.staircase.showSingleStep) {
     button.classList.add('active');
     button.querySelector('.material-icons').textContent = 'filter_1';
-    button.title = 'Showing single step (click to show all)';
+    button.title = 'Showing single step';
     stepNav.style.display = 'flex';
   } else {
     button.classList.remove('active');
     button.querySelector('.material-icons').textContent = 'view_carousel';
-    button.title = 'Showing all steps (click to show single)';
+    button.title = 'Show single step';
     stepNav.style.display = 'none';
   }
   
-  if (state.viewMode === '3d') {
-    render3D.generateStaircase();
+  controls.updateView();
+}
+
+// Builder Mode
+function toggleBuilderMode() {
+  state.builderMode = !state.builderMode;
+  
+  const controlsPanel = document.querySelector('.controls-panel');
+  const topBar = document.querySelector('.top-app-bar');
+  const builderOverlay = document.getElementById('builder-overlay');
+  const builderControls = document.getElementById('builder-controls');
+  const builderInfo = document.getElementById('builder-info');
+  
+  if (state.builderMode) {
+    if (state.viewMode === '3d') toggleViewMode();
+    
+    controlsPanel.style.display = 'none';
+    topBar.style.display = 'none';
+    builderOverlay.style.display = 'block';
+    builderControls.style.display = 'flex';
+    builderInfo.style.display = 'block';
+    
+    updateBuilderDisplay();
+    resizeCanvas();
   } else {
+    controlsPanel.style.display = 'flex';
+    topBar.style.display = 'flex';
+    builderOverlay.style.display = 'none';
+    builderControls.style.display = 'none';
+    builderInfo.style.display = 'none';
+    
     resizeCanvas();
   }
 }
 
+function updateBuilderDisplay() {
+  document.getElementById('builder-step-number').textContent = state.staircase.currentStep + 1;
+  document.getElementById('builder-step-total').textContent = state.staircase.totalHeight;
+  document.getElementById('builder-height').textContent = `Height: ${state.staircase.totalHeight} blocks`;
+  document.getElementById('builder-rotation').textContent = `Rotation: ${state.staircase.rotationDegrees}°`;
+  document.getElementById('builder-direction').textContent = `Direction: ${state.staircase.direction === 1 ? 'Up' : 'Down'}`;
+}
+
+// View Mode
 function toggleViewMode() {
   state.viewMode = state.viewMode === '2d' ? '3d' : '2d';
   
@@ -1311,10 +1367,9 @@ function toggleViewMode() {
     canvas2D.style.display = 'none';
     scene3D.style.display = 'block';
     toggleBtn.classList.add('active');
-    toggleBtn.innerHTML = '<span class="material-icons">view_in_ar</span> 3D Mode';
+    toggleBtn.innerHTML = '<span class="material-icons">grid_view</span> 2D Mode';
     viewModeControl.style.display = 'flex';
     
-    // Restore previous single-step state
     if (state.staircase.showSingleStep) {
       stepNav.style.display = 'flex';
     } else {
@@ -1335,11 +1390,10 @@ function toggleViewMode() {
       }
     }
   } else {
-    // 2D mode - always show single step
     canvas2D.style.display = 'block';
     scene3D.style.display = 'none';
     toggleBtn.classList.remove('active');
-    toggleBtn.innerHTML = '<span class="material-icons">grid_view</span> 2D Mode';
+    toggleBtn.innerHTML = '<span class="material-icons">view_in_ar</span> 3D Mode';
     viewModeControl.style.display = 'none';
     stepNav.style.display = 'flex';
     resizeCanvas();
@@ -1356,22 +1410,14 @@ function resizeCanvas() {
   let width = elWidth;
   let height = elHeight;
   const { width: ellipseWidth, height: ellipseHeight } = state.ellipse;
-  const { fitMode, scale } = state.canvas;
+  const { scale } = state.canvas;
   
   const h1 = height;
   const w1 = height * ellipseWidth / ellipseHeight;
   const w2 = width;
   const h2 = width * ellipseHeight / ellipseWidth;
   
-  if (fitMode === 0) {
-    if (w1 > w2) {
-      width = w2;
-      height = h2;
-    } else {
-      width = w1;
-      height = h1;
-    }
-  } else if (fitMode === 1) {
+  if (w1 > w2) {
     width = w2;
     height = h2;
   } else {
@@ -1406,8 +1452,13 @@ function toggleTheme() {
     state.view3D.scene.background = new THREE.Color(newTheme === 'dark' ? 0x141218 : 0xfefbff);
     render3D.generateStaircase();
   }
+  
+  if (state.viewMode === '2d') {
+    resizeCanvas();
+  }
 }
 
+// Initialization
 window.addEventListener('load', () => {
   document.getElementById('ellw').value = state.ellipse.width;
   document.getElementById('ellh').value = state.ellipse.height;
@@ -1415,6 +1466,7 @@ window.addEventListener('load', () => {
   document.getElementById('innerellh').value = state.ellipse.innerHeight;
   document.getElementById('totalheight').value = state.staircase.totalHeight;
   document.getElementById('rotation').value = state.staircase.rotationDegrees;
+  document.getElementById('startangle').value = state.staircase.startingAngle;
   
   setTimeout(() => {
     controls.updateMirrorButton('outer-mirror', state.ellipse.outerMirrored);
@@ -1428,9 +1480,25 @@ window.addEventListener('load', () => {
     themeIcon.textContent = 'light_mode';
   }
   
-  // Start in 3D mode
   state.viewMode = '3d';
   render3D.init();
+  
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && state.builderMode) {
+      toggleBuilderMode();
+      return;
+    }
+    
+    if (state.builderMode) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        nextStep();
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        prevStep();
+      }
+    }
+  });
 });
 
 window.addEventListener('resize', () => {
@@ -1454,8 +1522,11 @@ window.addEventListener('resize', () => {
 <header class="top-app-bar">
     <h1>Ellipse Ring Staircase</h1>
     <div class="header-controls">
-        <button class="view-toggle" id="view-toggle" onclick="toggleViewMode()" title="Toggle 3D Mode">
-            <span class="material-icons">view_in_ar</span> 3D Mode
+        <button class="view-toggle" id="builder-toggle" onclick="toggleBuilderMode()" title="Toggle Builder Mode">
+            <span class="material-icons">fullscreen</span> Builder
+        </button>
+        <button class="view-toggle active" id="view-toggle" onclick="toggleViewMode()" title="Toggle View Mode">
+            <span class="material-icons">grid_view</span> 2D Mode
         </button>
         <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
             <span class="material-icons" id="theme-icon">light_mode</span>
@@ -1509,7 +1580,7 @@ window.addEventListener('resize', () => {
             
             <div class="control-group" id="view-mode-control">
                 <span class="label">View Mode</span>
-                <button class="btn-icon" id="single-step-toggle" onclick="toggleSingleStep()" title="Show all steps">
+                <button class="btn-icon" id="single-step-toggle" onclick="toggleSingleStep()" title="Show single step">
                     <span class="material-icons">view_carousel</span>
                 </button>
             </div>
@@ -1524,6 +1595,7 @@ window.addEventListener('resize', () => {
                     </button>
                 </div>
             </div>
+            
             <div class="control-group">
                 <span class="label">Total Height</span>
                 <button class="btn btn-filled" onclick="decHeight()">−</button>
@@ -1536,6 +1608,13 @@ window.addEventListener('resize', () => {
                 <button class="btn btn-filled" onclick="decRotation()">−</button>
                 <input type="text" id="rotation" class="input-field" onblur="getRotation()">
                 <button class="btn btn-filled" onclick="incRotation()">+</button>
+            </div>
+            
+            <div class="control-group">
+                <span class="label">Start Angle (°)</span>
+                <button class="btn btn-filled" onclick="decStartingAngle()">−</button>
+                <input type="text" id="startangle" class="input-field" onblur="getStartingAngle()">
+                <button class="btn btn-filled" onclick="incStartingAngle()">+</button>
             </div>
             
             <div class="control-group">
@@ -1575,7 +1654,7 @@ window.addEventListener('resize', () => {
         <div class="surface" style="font-size: 12px; padding: 12px;">
             <div style="color: var(--on-surface-variant); line-height: 1.4;">
                 <div style="margin-bottom: 8px;">
-                    <strong>Inspired by work from:</strong><br>
+                    <strong>Inspired by:</strong><br>
                     Timothy Miller, Binghamton University
                 </div>
                 <div>
@@ -1595,6 +1674,37 @@ window.addEventListener('resize', () => {
     <div class="canvas-container" id="canvas-container">
         <canvas id="myCanvas" style="display: none;"></canvas>
         <div id="scene3d"></div>
+        
+        <div class="builder-overlay" id="builder-overlay" style="display: none;">
+            <h2>Step <span id="builder-step-number">1</span></h2>
+            <p>of <span id="builder-step-total">20</span></p>
+        </div>
+        
+        <div class="builder-controls" id="builder-controls" style="display: none;">
+            <button class="btn btn-filled" onclick="prevStep()">
+                <span class="material-icons">chevron_left</span>
+                Previous
+            </button>
+            <button class="btn btn-filled" onclick="toggleBuilderMode()">
+                <span class="material-icons">close</span>
+                Exit
+            </button>
+            <button class="btn btn-filled" onclick="nextStep()">
+                Next
+                <span class="material-icons">chevron_right</span>
+            </button>
+        </div>
+        
+        <div class="builder-info" id="builder-info" style="display: none;">
+            <div id="builder-height">Height: 20 blocks</div>
+            <div id="builder-rotation">Rotation: 360°</div>
+            <div id="builder-direction">Direction: Up</div>
+            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--outline-variant);">
+                <strong>Controls:</strong><br>
+                ← → Arrow keys<br>
+                ESC to exit
+            </div>
+        </div>
     </div>
 </div>
 
