@@ -9,6 +9,7 @@
 - **Builder Mode**: Full-screen step-by-step guide with keyboard controls for in-game building
 - **Flexible Configuration**: Create partial spirals (90°, 180°) or multi-rotation towers (720°+)
 - **Starting Angle Control**: Rotate where your staircase begins (0°-315°)
+- **Bi-directional Spirals**: Build counter-clockwise (CCW) or clockwise (CW) staircases
 - **Modern UI**: Clean Material Design 3 interface with dark/light themes
 - **Mirror Controls**: Link width/height for perfect circles or separate for ellipses
 - **Interactive 3D Camera**: Full mouse and keyboard navigation controls
@@ -20,7 +21,7 @@
 
 ## Preview
 
-![Preview](https://github.com/netrokus/ellipse-and-staircase-generator/blob/main/preview.png)
+![Preview](https://github.com/netrokus/ellipse-and-staircase-generator/blob/main/screenshots/preview.png)
 
 ## How to Use
 
@@ -32,7 +33,8 @@
    - **Total Height**: How many steps/blocks tall (4-100 blocks)
    - **Rotation**: How far around the circle (45°-720°)
    - **Start Angle**: Where the staircase begins (0°-315°)
-   - **Direction**: Spiral up or down
+   - **Vertical Direction**: Spiral up or down
+   - **Spiral Direction**: Counter-clockwise (CCW) or clockwise (CW)
 
 ### 2D Mode (Top-Down View)
 
@@ -87,6 +89,10 @@ Full-screen building assistant for in-game construction:
 - 180° = starts at the left (9 o'clock position)
 - 270° = starts at the bottom (6 o'clock position)
 
+**Spiral Direction**: Direction of rotation
+- **CCW (Counter-Clockwise)**: Spirals left when ascending
+- **CW (Clockwise)**: Spirals right when ascending
+
 **How they work together**: 
 - Height=20, Rotation=360° → 20 steps evenly distributed around a full circle (18° per step)
 - Height=15, Rotation=180° → 15 steps spanning half the circle (12° per step)
@@ -120,7 +126,7 @@ Click the sync icon (⟲) to link width and height:
 - **Three.js r128**: Hardware-accelerated 3D visualization
 - **Instanced rendering**: Efficiently handles thousands of blocks
 - **Optimized shadows**: Disabled for cleaner visualization
-- **Transparent inner ring**: Blue semi-transparent blocks show the inner boundary
+- **Angular wedge calculation**: Accurate block placement for both rotation directions
 - **Theme system**: Seamless dark/light mode switching with CSS variables
 
 ## Browser Compatibility
@@ -161,7 +167,7 @@ cd ellipse-and-staircase-generator
 
 The staircase consists of:
 - **Outer ellipse ring** (red outline): The outer boundary
-- **Inner ellipse ring** (blue outline): The hollow center (shown as semi-transparent blocks in 3D)
+- **Inner ellipse ring** (blue outline): The hollow center
 - **Step wedges**: Sections of the ring between inner and outer ellipses, one per step
 
 Each step occupies an angular section of the ring, calculated by dividing the total rotation by the number of steps.
@@ -180,6 +186,7 @@ A reimagined approach to building spiral staircases in voxel games:
 - Material Design 3 UI with dark/light themes
 - Optimized 3D rendering with instanced meshes
 - Starting angle control for flexible designs
+- Bi-directional spiral support (CCW/CW)
 - Step-by-step navigation system
 - Simplified controls focused on practical building use cases
 - Mobile-responsive interface
@@ -196,25 +203,35 @@ Contributions welcome! Submit issues and pull requests on GitHub.
 5. Submit pull request with description of changes
 
 ### Future Ideas
-- Export as schematic files (.schem/.nbt)
+- Block count calculator and material estimator
+- Export layer-by-layer as images or PDF guide
+- Schematic file export (.schem/.nbt/.litematic)
 - Save/load staircase designs (localStorage/JSON)
 - Pattern presets library (common sizes)
-- Material/block type selection and preview
+- Build progress tracking with checkboxes
 - Share designs via URL parameters
 - Animation showing construction sequence
 - Print mode for step-by-step instructions
-- Multi-staircase support (double helix)
+- Validation warnings for buildability
+- Next block indicator in builder mode
+
+See [IMPROVEMENTS.md](link-to-improvements-artifact) for detailed feature roadmap.
 
 ## Changelog
 
-### v2.0 (Current)
+### v2.1 (Current)
+- 🐛 **Fixed clockwise rotation bug**: Corrected inverted block placement in CW spiral mode
+- ✨ Both CCW and CW spirals now generate correctly in 2D and 3D views
+- 🔧 Improved angle normalization for consistent wedge selection
+
+### v2.0
 - ✨ Added Builder Mode with full-screen interface
 - ✨ Added Starting Angle control (0°-315°)
 - 🐛 Fixed all missing function implementations
 - 🐛 Fixed theme switching in 2D mode
 - 🎨 Improved CSS for builder mode overlays
 - ⚡ Streamlined codebase and removed redundant code
-- 📝 Enhanced keyboard navigation in builder mode
+- 📱 Enhanced keyboard navigation in builder mode
 
 ### v1.0
 - Initial release with 2D/3D modes
